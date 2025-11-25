@@ -1,0 +1,57 @@
+{% load static %}
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <title>Fashion E‑com Mock — Trang chủ</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <meta name="description" content="Mock e‑commerce site using Tailwind v3 CDN" />
+</head>
+<body class="bg-amber-50 text-gray-800">
+  <header class="bg-amber-50">
+    <div class="max-w-7xl mx-auto px-4 py-4 flex items-center">
+      <a href="{% url 'shop-index' %}" ><img src="{% static 'images/logo1.png' %}" class="h-12 w-12" alt="Logo"/></a>
+      <nav class="space-x-4 ml-3 ">
+        <a href="{% url 'shop-products' %}" class="font-display text-lg text-gray-600 hover:text-gray-900">Sản phẩm</a>
+        <a href="{% url 'shop-cart' %}" class="font-display text-lg text-gray-600 hover:text-gray-900">Giỏ hàng</a>
+        <a href="{% url 'shop-ai-search' %}" class="text-lg text-gray-600 hover:text-gray-900">Tìm kiếm</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="max-w-6xl mx-auto px-4 py-12">
+    <section class="text-center">
+      <h1 class="text-4xl font-extrabold mb-4">Chào mừng đến Fashion E-com Mock</h1>
+      <p class="text-gray-600 mb-6">Website demo danh sách sản phẩm, chi tiết, giỏ hàng và tìm kiếm AI.</p>
+      <div class="flex justify-center gap-4">
+        <a href="{% url 'shop-products' %}" class="px-6 py-3 bg-indigo-600 text-white rounded-lg">Xem sản phẩm</a>
+        <a href="{% url 'shop-ai-search' %}" class="px-6 py-3 border border-gray-300 rounded-lg">Tìm bằng ảnh</a>
+      </div>
+    </section>
+
+    <section class="mt-12">
+      <h2 class="text-2xl font-semibold mb-4">Các sản phẩm nổi bật</h2>
+      <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+
+        {% for product in featured_products %}
+        <article class="bg-white rounded shadow p-4 hover:shadow-lg transition">
+          <img src="{{ product.image }}" alt="{{ product.title }}" class="w-full h-40 object-cover mb-3 rounded" />
+          <h3 class="font-semibold">{{ product.title }}</h3>
+          <p class="text-sm text-gray-600">{{ product.description|truncatewords:5 }}</p>
+          <div class="mt-2 flex justify-between items-center">
+            <span class="font-bold">₫{{ product.price|floatformat:0|default:"0" }}</span>
+            <a href="{% url 'shop-product-detail' product.id %}" class="text-indigo-600 text-sm hover:underline">Chi tiết</a>
+          </div>
+        </article>
+        {% endfor %}
+      </div>
+    </section>
+  </main>
+
+  <footer class="bg-white border-t mt-12">
+    <div class="max-w-6xl mx-auto px-4 py-6 text-sm text-gray-500">© Mock Fashion — chỉ dùng cho demo</div>
+  </footer>
+</body>
+</html>

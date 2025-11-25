@@ -1,0 +1,102 @@
+{% load static %}
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Tìm bằng ảnh — Fashion Mock</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 text-gray-800">
+  <header class="bg-white shadow">
+    <div class="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
+      <a href="{% url 'shop-index' %}" class="text-2xl font-bold">Fashion Mock</a>
+      <nav class="space-x-4">
+        <a href="{% url 'shop-products' %}" class="text-sm text-gray-600">Danh sách</a>
+        <a href="{% url 'shop-cart' %}" class="text-sm text-gray-600">Giỏ hàng</a>
+      </nav>
+    </div>
+  </header>
+  <main class="max-w-4xl mx-auto px-4 py-12">
+    <h1 class="text-3xl font-bold mb-4">Tìm kiếm bằng ảnh (AI Search Mock)</h1>
+    <div class="bg-white p-6 rounded shadow">
+      <p class="text-gray-600 mb-6">Upload một ảnh sản phẩm để tìm những mặt hàng tương tự. (Demo — kết quả được mock)</p>
+      
+      <div class="mb-8">
+        <label class="block mb-3 font-semibold">Chọn ảnh để tìm kiếm</label>
+        <div class="border-2 border-dashed border-indigo-300 rounded p-6 text-center bg-indigo-50 cursor-pointer hover:bg-indigo-100" id="dropZone">
+          <input id="fileInput" type="file" accept="image/*" class="hidden" />
+          <p class="text-gray-600">Kéo & thả ảnh vào đây hoặc <span class="text-indigo-600 font-semibold">click để chọn</span></p>
+          <p class="text-sm text-gray-500 mt-2">Hỗ trợ: JPG, PNG, WebP</p>
+        </div>
+      </div>
+
+      <div id="preview" class="mb-6"></div>
+      <div id="results" class="mt-6"></div>
+    </div>
+  </main>
+  <script>
+    const dropZone = document.getElementById('dropZone');
+    const fileInput = document.getElementById('fileInput');
+
+    dropZone.addEventListener('click', () => fileInput.click());
+    
+    dropZone.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      dropZone.classList.add('bg-indigo-200');
+    });
+    
+    dropZone.addEventListener('dragleave', () => {
+      dropZone.classList.remove('bg-indigo-200');
+    });
+    
+    dropZone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dropZone.classList.remove('bg-indigo-200');
+      if (e.dataTransfer.files[0]) {
+        fileInput.files = e.dataTransfer.files;
+        handleFileSelect();
+      }
+    });
+
+    fileInput.addEventListener('change', handleFileSelect);
+
+    function handleFileSelect() {
+      const file = fileInput.files[0];
+      if (!file) return;
+      
+      const url = URL.createObjectURL(file);
+      document.getElementById('preview').innerHTML = `
+        <div>
+          <h3 class="font-semibold mb-3">Ảnh đã chọn:</h3>
+          <img src="${url}" class="w-48 h-48 object-cover rounded mx-auto" />
+        </div>
+      `;
+      
+      // Mock results
+      const mockProducts = [
+        {id: 1, title: 'Áo Thun Mẫu #1', price: 199000, image: '/static/images/product-001.svg'},
+        {id: 2, title: 'Quần Jeans #2', price: 399000, image: '/static/images/product-002.svg'},
+        {id: 3, title: 'Đầm Nữ #3', price: 299000, image: '/static/images/product-003.svg'},
+        {id: 4, title: 'Áo Khoác #4', price: 699000, image: '/static/images/product-004.svg'},
+      ];
+      
+      document.getElementById('results').innerHTML = `
+        <h3 class="font-semibold mb-3">Kết quả tìm kiếm (Mock):</h3>
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+          ${mockProducts.map(p => `
+            <div class="bg-white rounded shadow overflow-hidden hover:shadow-lg transition">
+              <img src="${p.image}" alt="${p.title}" class="w-full h-32 object-cover" />
+              <div class="p-3">
+                <h4 class="text-sm font-semibold truncate">${p.title}</h4>
+                <p class="text-sm font-bold text-indigo-600">₫${p.price.toLocaleString('vi-VN')}</p>
+                <a href="/product/${p.id}/" class="text-xs text-indigo-600 hover:underline block mt-2">Xem chi tiết</a>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      `;
+    }
+  </script>
+</body>
+</html>

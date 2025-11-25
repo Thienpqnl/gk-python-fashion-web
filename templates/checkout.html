@@ -1,0 +1,119 @@
+{% load static %}
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Thanh toán — Fashion Mock</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 text-gray-800">
+  <header class="bg-white shadow">
+    <div class="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
+      <a href="{% url 'shop-index' %}" class="text-2xl font-bold">Fashion Mock</a>
+      <nav class="space-x-4">
+        <a href="{% url 'shop-products' %}" class="text-sm text-gray-600">Danh sách</a>
+        <a href="{% url 'shop-cart' %}" class="text-sm text-gray-600">Giỏ hàng</a>
+      </nav>
+    </div>
+  </header>
+  <main class="max-w-3xl mx-auto px-4 py-12">
+    <h1 class="text-3xl font-bold mb-6">Thanh toán</h1>
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div class="lg:col-span-2">
+        <div class="bg-white p-6 rounded shadow">
+          <h2 class="text-xl font-semibold mb-4">Thông tin giao hàng</h2>
+          <form id="checkoutForm">
+            <div class="mb-4">
+              <label class="block text-sm font-semibold mb-2">Họ và tên *</label>
+              <input type="text" name="fullname" required class="w-full border border-gray-300 p-3 rounded" placeholder="Nguyễn Văn A" />
+            </div>
+            <div class="mb-4">
+              <label class="block text-sm font-semibold mb-2">Email *</label>
+              <input type="email" name="email" required class="w-full border border-gray-300 p-3 rounded" placeholder="example@mail.com" />
+            </div>
+            <div class="mb-4">
+              <label class="block text-sm font-semibold mb-2">Địa chỉ *</label>
+              <textarea name="address" required class="w-full border border-gray-300 p-3 rounded" rows="3" placeholder="Số nhà, đường phố..."></textarea>
+            </div>
+            
+            <h2 class="text-xl font-semibold mb-4 mt-6">Phương thức thanh toán</h2>
+            <div class="space-y-3 mb-6">
+              <label class="flex items-center">
+                <input type="radio" name="payment" value="cod" checked class="mr-3" />
+                <span>Thanh toán khi nhận hàng (COD)</span>
+              </label>
+              <label class="flex items-center">
+                <input type="radio" name="payment" value="bank" class="mr-3" />
+                <span>Chuyển khoản ngân hàng</span>
+              </label>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <div class="lg:col-span-1">
+        <div id="orderSummary" class="bg-white p-6 rounded shadow sticky top-4">
+          <h2 class="text-lg font-semibold mb-4">Tóm tắt đơn hàng</h2>
+          <div id="summaryItems" class="space-y-2 mb-4 pb-4 border-b text-sm">
+            <p class="text-gray-500">Đang tải...</p>
+          </div>
+          <div class="space-y-3">
+            <div class="flex justify-between">
+              <span>Tạm tính:</span>
+              <span id="subtotal">₫0</span>
+            </div>
+            <div class="flex justify-between">
+              <span>Vận chuyển:</span>
+              <span>Miễn phí</span>
+            </div>
+            <div class="border-t pt-3 flex justify-between font-semibold text-lg">
+              <span>Tổng cộng:</span>
+              <span id="total" class="text-indigo-600">₫0</span>
+            </div>
+          </div>
+          <button onclick="completeOrder()" class="w-full mt-4 px-4 py-3 bg-green-600 text-white rounded font-semibold hover:bg-green-700 transition">Đặt hàng</button>
+          <a href="{% url 'shop-cart' %}" class="block text-center mt-2 text-indigo-600 hover:underline text-sm">← Quay lại giỏ hàng</a>
+        </div>
+      </div>
+    </div>
+  </main>
+  <script src="/static/js/cart.js"></script>
+  <script>
+    async function loadCheckoutData() {
+      try {
+        const response = await fetch('/api/cart/');
+        const data = await response.json();
+        if (data.status === 'success') {
+          const { items, total_price } = data.data;
+          document.getElementById('summaryItems').innerHTML = items.map(item => 
+            `<div class="flex justify-between"><span>${item.product_title} x${item.quantity}</span><span>₫${item.item_total.toLocaleString('vi-VN')}</span></div>`
+          ).join('');
+          document.getElementById('subtotal').textContent = '₫' + total_price.toLocaleString('vi-VN');
+          document.getElementById('total').textContent = '₫' + total_price.toLocaleString('vi-VN');
+        }
+      } catch (err) {
+        console.error('Error loading checkout:', err);
+      }
+    }
+
+    function completeOrder() {
+      const formData = new FormData(document.getElementById('checkoutForm'));
+      const orderData = {
+        fullname: formData.get('fullname'),
+        email: formData.get('email'),
+        address: formData.get('address'),
+        payment_method: formData.get('payment'),
+        total: parseInt(document.getElementById('total').textContent.replace(/[^\d]/g, '')) || 0
+      };
+      
+      // Mock order creation
+      localStorage.setItem('lastOrder', JSON.stringify({...orderData, id: 'O-' + Date.now(), createdAt: new Date().toISOString()}));
+      alert('✓ Đơn hàng được đặt thành công!\nID: ' + 'O-' + Date.now());
+      window.location.href = '{% url "shop-order-history" %}';
+    }
+
+    document.addEventListener('DOMContentLoaded', loadCheckoutData);
+  </script>
+</body>
+</html>

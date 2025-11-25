@@ -1,0 +1,163 @@
+{% load static %}
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Giỏ hàng — Fashion Mock</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 text-gray-800">
+  <header class="bg-white shadow">
+    <div class="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
+      <a href="{% url 'shop-index' %}" class="text-2xl font-bold">Fashion Mock</a>
+      <nav class="space-x-4">
+        <a href="{% url 'shop-products' %}" class="text-sm text-gray-600 hover:text-gray-900">Danh sách</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="max-w-6xl mx-auto px-4 py-8">
+    <h1 class="text-3xl font-bold mb-6">Giỏ hàng của bạn</h1>
+    
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <!-- Danh sách sản phẩm -->
+      <div class="lg:col-span-2">
+        <div id="cartItems" class="bg-white rounded shadow">
+          <div class="p-6 text-center text-gray-500">
+            <p>Đang tải giỏ hàng...</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tóm tắt đơn hàng -->
+      <div class="lg:col-span-1">
+        <div id="cartSummary" class="bg-white rounded shadow p-6 sticky top-4">
+          <h2 class="text-lg font-semibold mb-4">Tóm tắt đơn hàng</h2>
+          <div id="summaryContent" class="space-y-3 text-sm">
+            <div class="flex justify-between text-gray-600">
+              <span>Tạm tính:</span>
+              <span id="subtotal">₫0</span>
+            </div>
+            <div class="flex justify-between text-gray-600">
+              <span>Vận chuyển:</span>
+              <span id="shipping">Miễn phí</span>
+            </div>
+            <div class="border-t pt-3 flex justify-between font-semibold text-lg">
+              <span>Tổng cộng:</span>
+              <span id="total" class="text-indigo-600">₫0</span>
+            </div>
+          </div>
+          <button id="checkoutBtn" onclick="goCheckout()" class="w-full mt-4 px-4 py-3 bg-indigo-600 text-white rounded font-semibold hover:bg-indigo-700 transition">Thanh toán</button>
+          <a href="{% url 'shop-products' %}" class="block text-center mt-2 text-indigo-600 hover:underline text-sm">Tiếp tục mua sắm</a>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script src="/static/js/cart.js"></script>
+  <script>
+    async function loadCart() {
+      try {
+        const response = await fetch('/api/cart/');
+        const data = await response.json();
+        
+        if (data.status === 'success') {
+          renderCartItems(data.data);
+        }
+      } catch (err) {
+        console.error('Error loading cart:', err);
+      }
+    }
+
+    function renderCartItems(cartData) {
+      const container = document.getElementById('cartItems');
+      const { items, total_price, total_quantity } = cartData;
+
+      if (items.length === 0) {
+        container.innerHTML = `
+          <div class="p-12 text-center">
+            <p class="text-gray-500 mb-4">Giỏ hàng của bạn trống</p>
+            <a href="{% url 'shop-products' %}" class="text-indigo-600 hover:underline">Tiếp tục mua sắm</a>
+          </div>
+        `;
+      } else {
+        container.innerHTML = items.map((item, i) => `
+          <div class="p-4 border-b flex gap-4 hover:bg-gray-50">
+            <img src="${item.product_image}" alt="${item.product_title}" class="w-24 h-24 object-cover rounded" />
+            <div class="flex-1">
+              <h3 class="font-semibold">${item.product_title}</h3>
+              <p class="text-sm text-gray-600 mt-1">₫${item.product_price.toLocaleString('vi-VN')}</p>
+              <div class="flex items-center gap-2 mt-3">
+                <button class="px-2 py-1 border border-gray-300 rounded hover:bg-gray-100" onclick="updateQuantity(${item.product_id}, ${item.quantity - 1})">−</button>
+                <input type="number" value="${item.quantity}" min="1" class="w-12 text-center border border-gray-300 rounded" readonly />
+                <button class="px-2 py-1 border border-gray-300 rounded hover:bg-gray-100" onclick="updateQuantity(${item.product_id}, ${item.quantity + 1})">+</button>
+                <button class="ml-auto text-red-600 text-sm hover:underline" onclick="removeFromCart(${item.product_id})">Xóa</button>
+              </div>
+            </div>
+            <div class="text-right">
+              <p class="font-semibold">₫${item.item_total.toLocaleString('vi-VN')}</p>
+            </div>
+          </div>
+        `).join('');
+      }
+
+      // Update summary
+      document.getElementById('subtotal').textContent = '₫' + total_price.toLocaleString('vi-VN');
+      document.getElementById('total').textContent = '₫' + total_price.toLocaleString('vi-VN');
+    }
+
+    async function updateQuantity(productId, newQty) {
+      if (newQty <= 0) {
+        removeFromCart(productId);
+        return;
+      }
+      
+      try {
+        const response = await fetch('/api/cart/update/', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token }}'
+          },
+          body: JSON.stringify({
+            product_id: productId,
+            quantity: newQty
+          })
+        });
+        const data = await response.json();
+        if (data.status === 'success') {
+          loadCart();
+        }
+      } catch (err) {
+        console.error('Error updating cart:', err);
+      }
+    }
+
+    async function removeFromCart(productId) {
+      try {
+        const response = await fetch('/api/cart/remove/', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token }}'
+          },
+          body: JSON.stringify({ product_id: productId })
+        });
+        const data = await response.json();
+        if (data.status === 'success') {
+          loadCart();
+        }
+      } catch (err) {
+        console.error('Error removing from cart:', err);
+      }
+    }
+
+    function goCheckout() {
+      window.location.href = '{% url "shop-checkout" %}';
+    }
+
+    document.addEventListener('DOMContentLoaded', loadCart);
+  </script>
+</body>
+</html>

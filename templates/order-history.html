@@ -1,0 +1,74 @@
+{% load static %}
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Lịch sử đơn hàng — Fashion Mock</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 text-gray-800">
+  <header class="bg-white shadow">
+    <div class="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
+      <a href="{% url 'shop-index' %}" class="text-2xl font-bold">Fashion Mock</a>
+      <nav class="space-x-4">
+        <a href="{% url 'shop-products' %}" class="text-sm text-gray-600">Danh sách</a>
+        <a href="{% url 'shop-cart' %}" class="text-sm text-gray-600">Giỏ hàng</a>
+      </nav>
+    </div>
+  </header>
+  <main class="max-w-6xl mx-auto px-4 py-8">
+    <h1 class="text-3xl font-bold mb-6">Lịch sử đơn hàng</h1>
+    <div id="orders" class="space-y-4"></div>
+  </main>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const lastOrder = JSON.parse(localStorage.getItem('lastOrder') || 'null');
+      const container = document.getElementById('orders');
+      
+      if (!lastOrder) {
+        container.innerHTML = '<div class="bg-white p-6 rounded shadow text-center text-gray-500"><p>Chưa có đơn hàng nào</p></div>';
+        return;
+      }
+      
+      container.innerHTML = `
+        <div class="bg-white p-6 rounded shadow">
+          <div class="grid grid-cols-2 gap-4 mb-4 pb-4 border-b">
+            <div>
+              <p class="text-sm text-gray-600">Mã đơn</p>
+              <p class="font-bold">${lastOrder.id}</p>
+            </div>
+            <div>
+              <p class="text-sm text-gray-600">Ngày đặt</p>
+              <p class="font-bold">${new Date(lastOrder.createdAt).toLocaleString('vi-VN')}</p>
+            </div>
+            <div>
+              <p class="text-sm text-gray-600">Người nhận</p>
+              <p class="font-bold">${lastOrder.fullname}</p>
+            </div>
+            <div>
+              <p class="text-sm text-gray-600">Phương thức thanh toán</p>
+              <p class="font-bold uppercase">${lastOrder.payment_method === 'cod' ? 'COD' : lastOrder.payment_method}</p>
+            </div>
+          </div>
+          
+          <div class="mb-4 pb-4 border-b">
+            <p class="text-sm text-gray-600 mb-2">Địa chỉ giao hàng</p>
+            <p>${lastOrder.address}</p>
+          </div>
+          
+          <div class="flex justify-between items-center">
+            <div>
+              <p class="text-sm text-gray-600">Tổng cộng</p>
+              <p class="text-2xl font-bold text-indigo-600">₫${(lastOrder.total || 0).toLocaleString('vi-VN')}</p>
+            </div>
+            <div>
+              <span class="px-4 py-2 bg-yellow-100 text-yellow-800 rounded font-semibold text-sm">Đang xử lý</span>
+            </div>
+          </div>
+        </div>
+      `;
+    });
+  </script>
+</body>
+</html>
