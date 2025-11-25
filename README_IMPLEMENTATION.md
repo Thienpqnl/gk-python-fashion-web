@@ -8,11 +8,13 @@
 - Django URL tags used for navigation (`{% url %}`)
 - CSRF token implementation for POST requests
 
-### 2. **Mock Data Integration** ✓
-- Created `fixtures/mock_data.py` with:
-  - 12 mock products (4 in each category)
-  - 3 product categories (Áo, Quần, Đầm)
-  - Realistic Vietnamese product names & prices
+### 2. **Seed Data / Database Integration** ✓
+- Seeded product data and categories into the project's database (SQLite).
+- Initial data can be (re)loaded using the management command:
+  ```bash
+  python manage.py load_mock_data
+  ```
+  The project uses the `Product` and `Category` models as the primary data source.
 
 ### 3. **Shop Views (Frontend Pages)** ✓
 ```
@@ -78,7 +80,7 @@ POST /api/search/history/delete/ - Clear history
 
 ## 🎯 How Everything Connects
 
-### Data Flow: Frontend → Backend → Data
+### Data Flow: Frontend → Backend → Data (DB-backed)
 ```
 User Action (Click)
     ↓
@@ -86,7 +88,7 @@ JavaScript AJAX Call
     ↓
 Django API View (products/cart/orders/search)
     ↓
-Process Request + Fetch Mock Data
+  Process Request + Query DB (Product/Category models)
     ↓
 Return JSON Response
     ↓
@@ -193,7 +195,7 @@ fashion-python-web1/
 
 ## 📊 Data Examples
 
-### Product List (from MOCK_PRODUCTS)
+### Product List (from database)
 ```json
 {
   "id": 1,
@@ -218,7 +220,7 @@ fashion-python-web1/
 }
 ```
 
-### Order (Mock Storage)
+### Order (Database Storage)
 ```json
 {
   "id": 1001,
@@ -233,9 +235,8 @@ fashion-python-web1/
 
 ---
 
-## 🔍 Key Features
 
-### ✅ Completed Features
+### ✅ Completed Features (high level)
 1. **Product Management**
    - Display all products with images
    - Filter by category
@@ -255,10 +256,10 @@ fashion-python-web1/
    - Cancel orders
 
 4. **Search Functionality**
-   - Text-based search
-   - Image upload (mock results)
-   - Search history tracking
-   - Clear history
+  - Text-based search (ORM)
+  - Image upload - currently returns placeholder/sample results (integrate ML later)
+  - Search history tracking (session)
+  - Clear history
 
 5. **Admin Interface**
    - Product management (Django admin)
@@ -285,24 +286,24 @@ fashion-python-web1/
 4. **JSON APIs** - RESTful endpoints for AJAX calls
 5. **Context Processing** - Passing data to templates
 6. **CSRF Protection** - Secure POST requests
-7. **Mock Data** - Using Python objects instead of DB
+7. **Seed Data** - Data is stored in the database and accessed via Django ORM
 8. **API Integration** - JavaScript fetch() calls
 9. **HTML Forms** - Order creation form
 10. **Static Files** - CSS, images, JavaScript
 
 ### Architecture Pattern:
 ```
-MVC (Model-View-Controller) + API Layer
+MVT (Model-View-Template) + API Layer
 
 Templates (View)
-    ↓ render with context
+  ↓ render with context
 Shop Views (Controller)
-    ↓ fetch/process
-Mock Data (Model)
+  ↓ fetch/process
+Product/Category Models (DB)
 
 + Separate API Views
-    ↓ process JSON
-    ↓ return JSON
+  ↓ process JSON
+  ↓ return JSON
 API Endpoints
 ```
 
@@ -343,6 +344,6 @@ You now have a **fully functional Fashion E-commerce mock application** with:
 - ✅ Admin interface
 - ✅ Professional UI with Tailwind CSS
 
-All templates are **connected to models**, all data is **properly mocked**, and the application is **ready to use or extend**.
+All templates are **connected to models**, data is **stored in the database**, and the application is **ready to use or extend**.
 
 **Happy shopping! 🛍️**

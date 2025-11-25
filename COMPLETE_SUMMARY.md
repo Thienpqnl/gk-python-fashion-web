@@ -1,34 +1,24 @@
 # ✨ Implementation Complete - Summary
 
 ## 🎉 What Has Been Accomplished
-
-### ✅ **Templates Connected to Models** 
-All 7 HTML templates are now connected to Django views and receive data context:
-
-| Template | View | Data Passed | Status |
-|----------|------|-------------|--------|
 | index.html | shop.views.index | featured_products, categories | ✅ |
-| products.html | shop.views.products_page | products, categories, selected_category | ✅ |
-| product-detail.html | shop.views.product_detail_page | product, categories | ✅ |
-| cart.html | shop.views.cart_page | categories | ✅ |
 | checkout.html | shop.views.checkout_page | categories | ✅ |
-| ai-search.html | shop.views.ai_search_page | categories | ✅ |
 | order-history.html | shop.views.order_history_page | categories | ✅ |
 
-### ✅ **Mock Data Implemented**
-- **12 Products** across 3 categories in `fixtures/mock_data.py`
+### ✅ **Seed Data / Database Backing**
+- **12 Products** across 3 categories were seeded into the project's SQLite database
   - Áo (Shirts/Jackets): 4 products
   - Quần (Pants/Shorts): 4 products
   - Đầm (Dresses): 4 products
 - **Realistic Data**: Vietnamese names, prices, descriptions, SKU codes
-- **Easy to Extend**: Products and categories are dictionaries, easy to query
+- **Persisted**: Products and categories are stored in the `Product` and `Category` models in the database
 
 ### ✅ **API Endpoints Created**
 - **18+ REST endpoints** across 4 apps
 - Products API: List, detail, search, filter by category
 - Cart API: Get, add, update, remove, clear
 - Orders API: List, detail, create, update status, cancel
-- Search API: Text search, image search (mock), history
+- Search API: Text search, image search, history
 
 ### ✅ **Data Flow Implemented**
 - Products → Views → Templates → HTML
@@ -48,57 +38,60 @@ All 7 HTML templates are now connected to Django views and receive data context:
          │ render with context
          │
 ┌────────▼─────────────────────┐
-│  7 Shop Views (shop/views.py) │
 │  - index                      │
 │  - products_page              │
-│  - product_detail_page        │
 │  - cart_page                  │
 │  - checkout_page              │
 │  - ai_search_page             │
-│  - order_history_page         │
-└────────┬─────────────────────┘
          │
          │ fetch data from
+from products.models import Product
+
+def list_products(request):
+  category_id = request.GET.get('category')
+  qs = Product.objects.filter(category_id=category_id) if category_id else Product.objects.all()
+  data = [
+    {
+      'id': p.id,
+      'sku': p.sku,
+      'title': p.title,
+      'description': p.description,
+      'price': p.price,
+      'image': p.image,
+      'category_id': p.category_id,
+      'category_name': p.category.name if p.category else None
+    }
+    for p in qs
+  ]
+  return JsonResponse({'status': 'success', 'data': data})
          │
 ┌────────▼──────────────────────────────────────────┐
-│        Mock Data & API Views                       │
-├────────────────────────────────────────────────────┤
-│  MOCK_PRODUCTS (12 products)                       │
-│         ↓ filtered by products/views.py            │
-│  API Endpoints (products, cart, orders, search)    │
-│         ↓ return JSON responses                    │
-│  Session Storage (cart, search history)            │
-│  Memory Storage (orders - mock)                    │
 │  localStorage (last order - frontend)              │
 └────────────────────────────────────────────────────┘
-```
 
----
-
-## 🔗 Connections Made
-
-### Product Connections
 ```python
-# Mock Data (fixture/mock_data.py)
-MOCK_PRODUCTS = [
-    {'id': 1, 'title': 'Áo Thun', 'price': 199000, ...},
-    {'id': 2, 'title': 'Quần Jeans', 'price': 399000, ...},
-    ...
-]
+# Database-backed products using Django ORM
+from products.models import Product
 
-# → Used in shop/views.py
-featured_products = MOCK_PRODUCTS[:4]  # Home page
-products = MOCK_PRODUCTS               # Product list page
-product = next((p for p in MOCK_PRODUCTS if p['id'] == product_id))  # Detail
+# Featured products (home)
+featured_products = Product.objects.all()[:4]
+
+# Product list page
+products = Product.objects.all()
+
+# Product detail
+product = Product.objects.get(id=product_id)
 
 # → Passed to templates as context
 render(request, 'index.html', {'featured_products': featured_products})
 
-# → Rendered in templates
+# → Rendered in templates using Django template objects
+{% raw %}
 {% for product in featured_products %}
   <h3>{{ product.title }}</h3>
   <p>₫{{ product.price }}</p>
 {% endfor %}
+{% endraw %}
 ```
 
 ### API Connections
@@ -108,21 +101,32 @@ fetch('/api/products/?category=1')
   .then(r => r.json())
   .then(data => renderProducts(data))
 
-# Backend (products/views.py)
+# Backend (products/views.py) using Django ORM
+from django.http import JsonResponse
+from products.models import Product
+
 def list_products(request):
     category_id = request.GET.get('category')
-    if category_id:
-        products = [p for p in MOCK_PRODUCTS if p['category_id'] == int(category_id)]
-    return JsonResponse({'status': 'success', 'data': products})
+    qs = Product.objects.filter(category_id=category_id) if category_id else Product.objects.all()
+    data = [
+        {
+            'id': p.id,
+            'sku': p.sku,
+            'title': p.title,
+            'description': p.description,
+            'price': p.price,
+            'image': p.image,
+            'category_id': p.category_id,
+            'category_name': p.category.name if p.category else None,
+        }
+        for p in qs
+    ]
+    return JsonResponse({'status': 'success', 'data': data})
 
-# → Response back to frontend
+# → Response back to frontend (JSON of DB records)
 {
   "status": "success",
-  "data": [
-    {"id": 1, "title": "Áo Thun", "price": 199000, ...},
-    {"id": 5, "title": "Áo Sơ Mi", "price": 349000, ...},
-    ...
-  ]
+  "data": [ /* array of product objects from DB */ ]
 }
 ```
 
@@ -184,9 +188,9 @@ fetch('/api/cart/').then(r => r.json()).then(d => console.log(d))
 
 ## 🎯 What Works Now
 
-### ✅ Frontend
+-### ✅ Frontend
 - [x] All 7 web pages render correctly
-- [x] Products display with real mock data
+- [x] Products display with seeded database data
 - [x] Category filtering works
 - [x] Product details show all info
 - [x] Cart UI works (AJAX powered)
@@ -197,19 +201,19 @@ fetch('/api/cart/').then(r => r.json()).then(d => console.log(d))
 ### ✅ Backend
 - [x] All views render with context data
 - [x] All API endpoints return JSON
-- [x] Session-based cart management
-- [x] Mock order creation
-- [x] Search functionality
++ [x] Session-based cart management
++ [x] Order creation persisted to DB
++ [x] Search functionality
 - [x] Admin interface configured
 - [x] Database tables created
 - [x] CSRF protection active
 
 ### ✅ Data
-- [x] 12 mock products loaded
-- [x] 3 categories defined
-- [x] Session storage working
-- [x] In-memory order storage working
-- [x] localStorage for order info working
+- [x] 12 seed products loaded into the SQLite database (via management command)
+- [x] 3 categories defined in the database
+- [x] Session storage working (cart, search history)
+- [x] Orders persisted to the `orders.Order` model
+- [x] localStorage for last order info still used by frontend
 
 ---
 
@@ -217,7 +221,7 @@ fetch('/api/cart/').then(r => r.json()).then(d => console.log(d))
 
 ### Currently: ✅ **Development Ready**
 - Great for learning Django
-- All features working with mock data
+- All features working with seeded database data
 - Clean, organized code
 - Fully documented
 
@@ -243,7 +247,7 @@ fetch('/api/cart/').then(r => r.json()).then(d => console.log(d))
 4. **Context Processing** - Passing data to templates
 5. **URL Routing** - Multiple URL patterns
 6. **Admin Interface** - Django admin customization
-7. **Mock Data Pattern** - Easy testing without database
+7. **Seed Data Pattern** - Initial seed data stored in the database for development/testing
 8. **CSRF Security** - Form protection
 
 ### Code Quality
@@ -263,7 +267,7 @@ fetch('/api/cart/').then(r => r.json()).then(d => console.log(d))
 ├── 12 Models (Product, Category, Cart, CartItem, Order, OrderItem, ...)
 ├── 18+ API Endpoints
 ├── 7 HTML Templates
-├── 12 Mock Products
+├── 12 Seed Products (DB)
 ├── 3 Categories
 └── ~500 lines of view code
 
@@ -273,7 +277,7 @@ fetch('/api/cart/').then(r => r.json()).then(d => console.log(d))
 ├── Database Tables: 10+
 ├── URLs Configured: 30+
 ├── Documentation Pages: 6
-└── Mock Data Records: 15
+└── Seed Products: 12
 
 📝 Documentation
 ├── README_IMPLEMENTATION.md (800+ lines)
@@ -290,7 +294,7 @@ fetch('/api/cart/').then(r => r.json()).then(d => console.log(d))
 
 - [x] All templates connected to views
 - [x] All views receive context data
-- [x] Mock data created and loaded
+- [x] Seed data created and loaded into database
 - [x] Products API implemented
 - [x] Cart API implemented
 - [x] Orders API implemented
@@ -309,9 +313,12 @@ fetch('/api/cart/').then(r => r.json()).then(d => console.log(d))
 ## 🎓 Next Steps to Learn
 
 ### If You Want to Extend This:
-1. **Replace Mock Data**
-   - Load data from MOCK_PRODUCTS into database
-   - Use Product.objects.all() in views
+1. **Seed data & Database**
+  - Use the provided management command to (re)seed initial products and categories:
+    ```bash
+    python manage.py load_mock_data
+    ```
+  - Views use `Product.objects.all()` / ORM queries to fetch data
 
 2. **Add Authentication**
    - User registration/login
@@ -333,9 +340,9 @@ fetch('/api/cart/').then(r => r.json()).then(d => console.log(d))
 
 ## 🙌 Summary
 
-**This Django Fashion E-commerce application successfully demonstrates:**
+-**This Django Fashion E-commerce application successfully demonstrates:**
 - ✅ Web templates connected to backend models
-- ✅ Mock data properly integrated
+- ✅ Seed data persisted in the database (via management command)
 - ✅ RESTful API design
 - ✅ Session-based shopping cart
 - ✅ Order management system
@@ -365,11 +372,11 @@ Password: admin123
 
 ### Key Files
 ```
-fixtures/mock_data.py      ← Mock products
-shop/views.py              ← Page views
-products/views.py          ← API endpoints
-cart/views.py              ← Cart operations
-templates/                 ← HTML files
+products/management/commands/load_mock_data.py  ← Management command to seed products/categories
+shop/views.py                                   ← Page views
+products/views.py                               ← API endpoints
+cart/views.py                                   ← Cart operations
+templates/                                      ← HTML files
 ```
 
 ### Commands
@@ -383,7 +390,7 @@ python manage.py migrate        # Apply migrations
 
 ## 🎉 **PROJECT COMPLETE!**
 
-All templates are connected to their models and data is properly mocked.
+All templates are connected to their models and seed data is persisted in the database.
 The application is fully functional and ready for use or extension.
 
 **Thank you for using this project!**

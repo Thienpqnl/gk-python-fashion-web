@@ -7,32 +7,23 @@
 ✅ **All templates are connected to models**
 ✅ **Mock data is loaded (12 products)**
 ✅ **API endpoints are functional**
-
+✅ **Seed data available: 12 products are loaded into the database**
 ---
 
-## 📖 Using the Web Application
 
 ### 1️⃣ **Home Page** (`/`)
 **What you see:**
 - Featured products section (first 4 products)
 - Navigation menu with links to:
-  - Sản phẩm (Products)
-  - Giỏ hàng (Shopping Cart)
   - Tìm kiếm (Search)
 
 **What to do:**
 - Click "Xem sản phẩm" to go to product listing
 - Click product images to view details
-- Click "Tìm bằng ảnh" for image search
 
----
-
-### 2️⃣ **Products Page** (`/products/`)
 **What you see:**
 - All 12 products in a grid
 - Category filter on the left sidebar (Áo, Quần, Đầm)
-- Each product shows: image, title, description, price
-
 **What to do:**
 - **Filter products**: Click category name in sidebar to filter
   - Áo → Shows 4 shirt/jacket products
@@ -40,38 +31,25 @@
   - Đầm → Shows 4 dress products
 - **View details**: Click "Chi tiết" button on any product card
 - **Back to all**: Click "Tất cả" to remove filter
-
-**Example prices:**
-```
-Áo Thun - ₫199,000
-Quần Jeans - ₫399,000
+2. **See results**: sample products appear as placeholders
+  ✅ **Server is running on**: `http://localhost:8000/`
+  ✅ **Seed data available: 12 products are loaded into the database**
+  ✅ **API endpoints are functional**
 Đầm Nữ - ₫299,000
-Áo Khoác - ₫699,000
 ```
-
----
 
 ### 3️⃣ **Product Detail Page** (`/product/<id>/`)
 **What you see:**
 - Large product image on left
 - Product info on right:
   - SKU code
-  - Full title
-  - Star rating (mock: 5 stars)
-  - Detailed description
   - Price
-  - Quantity selector with + / - buttons
   - "Thêm vào giỏ" button (Add to Cart)
   - Additional info (category, availability, shipping)
-
-**What to do:**
-1. **Select quantity**: Use +/- buttons or type directly
-2. **Add to cart**: Click "Thêm vào giỏ" (Add to Cart)
-   - You'll see: ✓ notification with message
-   - Quantity resets to 1
-3. **View on products page**: Click category name in "Danh mục" section
+  ...
+  **What to do:**
+    - Star rating shown as static placeholder (replace with real ratings later)
 4. **Go to cart**: Click "Giỏ hàng" in navigation
-
 ---
 
 ### 4️⃣ **Shopping Cart** (`/cart/`)
@@ -80,48 +58,46 @@ Quần Jeans - ₫399,000
 - Each item shows:
   - Product image
   - Product name
-  - Price per unit
-  - Quantity (with +/- buttons)
-  - Item total (quantity × price)
-  - "Xóa" (Delete) button
-- Cart summary (right sidebar):
-  - Subtotal
-  - Shipping (free)
+  **What to do:**
+  1. **Upload image**:
+    - Click the box to select file, OR
+    - Drag & drop an image
+    - Supports: JPG, PNG, WebP
+  2. **See results**: sample products appear as placeholders
+    - (This is a placeholder flow — integrate ML model later for real image search)
   - **Total amount**
-
 **What to do:**
 1. **Adjust quantities**: 
    - Click - to decrease (minimum 1)
    - Click + to increase
    - Type directly in field
 2. **Remove items**: Click "Xóa" button
-3. **Continue shopping**: Click "Tiếp tục mua sắm" link
-4. **Proceed to checkout**: Click "Thanh toán" button
-
-**Example:**
-```
+  ### Seed / Load Initial Data into Database
+  Use the included management command to (re)seed initial products and categories:
+  python manage.py load_mock_data
+  ```
+  This will create categories and products in the project's database. The `fixtures/` folder and top-level scripts are no longer used.
 If you add:
-- 2x Áo Thun (₫199,000 each) = ₫398,000
 - 1x Quần Jeans (₫399,000) = ₫399,000
-─────────────────────────────
+3. See sample products as results
 Total: ₫797,000
 ```
 
 ---
 
-### 5️⃣ **Checkout Page** (`/checkout/`)
-**What you see:**
-- Left side: Form with sections:
-  1. **Thông tin giao hàng** (Shipping Info)
-     - Họ và tên (Full Name) *required
-     - Email *required
+**Order data**: Persisted in the database (orders stored in `orders.Order`)
+Make sure views query the `Product` model (e.g. `Product.objects.all()`) instead of relying on in-file mock lists
+  2. **shop/views.py** - How views pass data to templates (uses ORM queries)
+  3. **products/models.py** - Product and Category models (database schema)
+  4. **cart/views.py** - How cart API works (session-backed)
+  5. **products/views.py** - Search & filtering logic (Django ORM)
      - Địa chỉ giao hàng (Shipping Address) *required
-  2. **Phương thức thanh toán** (Payment Method)
      - COD (Cash on Delivery) - selected by default
      - Bank transfer
-- Right side: Order summary
-
-**What to do:**
+  ### Next Steps
+  1. **Database & persistence**
+    - The project already uses a database-backed `Product` model. Use ORM queries such as `Product.objects.all()` in views.
+    - Orders are already stored in the `orders.Order` model; extend as needed.
 1. **Fill in form**:
    ```
    Name: Nguyễn Văn A

@@ -4,15 +4,15 @@
 
 ### Web Pages & Views
 
-| Page URL | View Function | Models Used | Mock Data |
-|----------|---------------|-------------|-----------|
-| `/` | `shop.views.index` | Product, Category | `MOCK_PRODUCTS[:4]` |
-| `/products/` | `shop.views.products_page` | Product, Category | `MOCK_PRODUCTS` |
-| `/product/<id>/` | `shop.views.product_detail_page` | Product | Single product lookup |
-| `/cart/` | `shop.views.cart_page` | Cart (Session) | Session cart data |
-| `/checkout/` | `shop.views.checkout_page` | Order | Session cart data |
-| `/ai-search/` | `shop.views.ai_search_page` | Search | Mock results |
-| `/order-history/` | `shop.views.order_history_page` | Order | localStorage |
+| Page URL | View Function | Models Used | Data Source |
+|----------|---------------|-------------|-------------|
+| `/` | `shop.views.index` | Product, Category | Database — `Product.objects.all()[:4]` |
+| `/products/` | `shop.views.products_page` | Product, Category | Database — `Product.objects.all()` |
+| `/product/<id>/` | `shop.views.product_detail_page` | Product | Database — `Product.objects.get(id=...)` |
+| `/cart/` | `shop.views.cart_page` | Cart (Session) | Session cart data (products from DB) |
+| `/checkout/` | `shop.views.checkout_page` | Order | Session cart → creates `orders.Order` records |
+| `/ai-search/` | `shop.views.ai_search_page` | Search | Placeholder/sample results (integrate ML later) |
+| `/order-history/` | `shop.views.order_history_page` | Order | Database — `orders.Order` (persisted orders) |
 
 ### API Endpoints & Data Flow
 
@@ -35,15 +35,14 @@
 │  /api/search/            → Search & History         │
 └────────┬──────────────────────────────────────────┬─┘
          │                                           │
-    Mock Data                                  Session/DB
-         │                                           │
-         ▼                                           ▼
-┌──────────────────┐                    ┌─────────────────────┐
-│  MOCK_PRODUCTS   │                    │  Django Session     │
-│  MOCK_CATEGORIES │                    │  (Cart, History)    │
-│  12 products     │                    │  In-Memory Orders   │
-│  3 categories    │                    │  (Mock Storage)     │
-└──────────────────┘                    └─────────────────────┘
+   Database (seeded)                          Session/DB
+       │                                           │
+       ▼                                           ▼
+┌────────────────────────────┐             ┌─────────────────────┐
+│  Product / Category tables  │             │  Django Session     │
+│  (seeded into DB via       │             │  (Cart, History)    │
+│   management command)      │             │                     │
+└────────────────────────────┘             └─────────────────────┘
 ```
 
 ## 📦 Data Model Mapping
@@ -64,10 +63,9 @@
 }
 ```
 
-**Mock Data: `fixtures.mock_data.MOCK_PRODUCTS`**
-- 12 products
-- Categories: Áo (4), Quần (4), Đầm (4)
-- Price range: ₫149,000 - ₫699,000
+**Seed Data:** products and categories are created in the database (12 products across 3 categories)
+ - Categories: Áo (4), Quần (4), Đầm (4)
+ - Price range: ₫149,000 - ₫699,000
 
 ---
 
@@ -126,19 +124,8 @@ request.session['cart'] = {
 }
 ```
 
-**Mock Storage: In-Memory Dict**
-```python
-_mock_orders = {
-    1001: {
-        'id': 1001,
-        'user_id': 'anonymous',
-        'items': [...],
-        'total_price': 598000,
-        'status': 'pending',
-        'created_at': '...'
-    }
-}
-```
+**Orders Storage: Database (`orders.Order`)**
+Orders are created as `Order` and `OrderItem` records in the database when checkout is completed.
 
 **Frontend Storage: localStorage**
 ```javascript
@@ -167,14 +154,14 @@ localStorage.setItem('lastOrder', JSON.stringify({
 }
 ```
 
-**Mock Storage: Session**
+**Search History: Session**
 ```python
 request.session['search_history'] = [
-    {
-        'query': 'jeans',
-        'results_count': 4,
-        'timestamp': '...'
-    }
+   {
+      'query': 'jeans',
+      'results_count': 4,
+      'timestamp': '...'
+   }
 ]
 ```
 
@@ -191,7 +178,7 @@ request.session['search_history'] = [
 
 2. Backend: cart.views.add_to_cart()
    └─ Parse JSON body
-   └─ Get product from MOCK_PRODUCTS
+   └─ Get product from DB: Product.objects.get(id=product_id)
    └─ Update request.session['cart']
    └─ Return { status: 'success' }
 
@@ -207,7 +194,7 @@ request.session['search_history'] = [
    └─ Navigate to /product/1/
 
 2. Backend: shop.views.product_detail_page(request, 1)
-   └─ Find product from MOCK_PRODUCTS
+   └─ Query DB: `Product.objects.get(id=1)`
    └─ Render template with product data
 
 3. Frontend: Display product.html
@@ -224,9 +211,9 @@ request.session['search_history'] = [
 
 2. Backend: orders.views.create_order_from_cart()
    └─ Get cart from session
-   └─ Build OrderItems from products
+   └─ Build Order and OrderItem records from DB product data
    └─ Calculate total_price
-   └─ Store in _mock_orders dict
+   └─ Persist order and order items in the database
    └─ Clear session['cart']
    └─ Return order data
 
@@ -242,10 +229,10 @@ request.session['search_history'] = [
 
 | Data | Source | Storage | Lifetime |
 |------|--------|---------|----------|
-| Products | `MOCK_PRODUCTS` | Memory | App session |
-| Categories | `MOCK_CATEGORIES` | Memory | App session |
+| Products | `products.Product` (DB) | Database | Persistent (DB) |
+| Categories | `products.Category` (DB) | Database | Persistent (DB) |
 | Cart Items | Form input | Session | User session (expires) |
-| Orders | API POST | Memory dict | App session |
+| Orders | `orders.Order` (DB) | Database | Persistent (DB) |
 | Search History | Text query | Session | User session (expires) |
 | User Info | Form input | localStorage | Browser storage |
 
@@ -292,13 +279,13 @@ curl http://localhost:8000/api/cart/ \
 
 ## ✅ Implementation Checklist
 
-- [x] Product models & mock data
-- [x] Category models & mock data
-- [x] Shop views (all pages)
-- [x] Products API views & endpoints
-- [x] Cart views & session management
-- [x] Orders views & mock storage
-- [x] Search views & session history
+-- [x] Product models & seed data
+-- [x] Category models & seed data
+-- [x] Shop views (all pages)
+-- [x] Products API views & endpoints (ORM)
+-- [x] Cart views & session management
+-- [x] Orders views & DB persistence
+-- [x] Search views & session history
 - [x] Templates with Django tags
 - [x] CSRF token handling
 - [x] AJAX API calls in templates
