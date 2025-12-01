@@ -21,17 +21,42 @@ INSTALLED_APPS = [
     'cart',
     'orders',
     'search',
+    'django.contrib.sites',
+    
+        # django-allauth
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
+    'allauth.socialaccount.providers.google',
+    'allauth.socialaccount.providers.facebook',
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'allauth.account.middleware.AccountMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+
+AUTHENTICATION_BACKENDS = [
+    'django.contrib.auth.backends.ModelBackend',
+    'allauth.account.auth_backends.AuthenticationBackend', 
+]
+SITE_ID = 1
+
+# Cấu hình đăng nhập bằng email
+ACCOUNT_AUTHENTICATION_METHOD = 'email'  # hoặc 'username_email' nếu muốn hỗ trợ cả username
+ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_USERNAME_REQUIRED = False
+ACCOUNT_EMAIL_VERIFICATION = 'mandatory'  # hoặc 'optional'
+
+# Redirect sau login/logout
+LOGIN_REDIRECT_URL = '/'
+LOGOUT_REDIRECT_URL = '/'
 
 ROOT_URLCONF = 'fashion_backend.urls'
 

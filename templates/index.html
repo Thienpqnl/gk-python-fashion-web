@@ -10,17 +10,26 @@
   <meta name="description" content="Mock e‑commerce site using Tailwind v3 CDN" />
 </head>
 <body class="bg-amber-50 text-gray-800">
-  <header class="bg-amber-50">
-    <div class="max-w-7xl mx-auto px-4 py-4 flex items-center">
-      <a href="{% url 'shop-index' %}" ><img src="{% static 'images/logo1.png' %}" class="h-12 w-12" alt="Logo"/></a>
-      <nav class="space-x-4 ml-3 ">
-        <a href="{% url 'shop-products' %}" class="font-display text-lg text-gray-600 hover:text-gray-900">Sản phẩm</a>
-        <a href="{% url 'shop-cart' %}" class="font-display text-lg text-gray-600 hover:text-gray-900">Giỏ hàng</a>
-        <a href="{% url 'shop-ai-search' %}" class="text-lg text-gray-600 hover:text-gray-900">Tìm kiếm</a>
-      </nav>
-    </div>
-  </header>
+<header class="bg-amber-50">
+  <div class="max-w-7xl mx-auto px-4 py-4 flex items-center">
+    <a href="{% url 'shop-index' %}">
+      <img src="{% static 'images/logo1.png' %}" class="h-12 w-12" alt="Logo"/>
+    </a>
+    <nav class="space-x-4 ml-3">
+      <a href="{% url 'shop-products' %}" class="font-display text-lg text-gray-600 hover:text-gray-900">Sản phẩm</a>
+      <a href="{% url 'shop-cart' %}" class="font-display text-lg text-gray-600 hover:text-gray-900">Giỏ hàng</a>
+      <a href="{% url 'shop-ai-search' %}" class="text-lg text-gray-600 hover:text-gray-900">Tìm kiếm</a>
 
+    {% if user.is_authenticated %}
+  <a href="{% url 'account_logout' %}" class="text-lg text-gray-600 hover:text-gray-900">Đăng xuất</a>
+  <!-- hoặc -->
+  <span class="text-lg text-gray-700">Xin chào, {{ user.email|truncatechars:20 }}</span>
+{% else %}
+  <a href="{% url 'account_login' %}" class="text-lg text-gray-600 hover:text-gray-900">Đăng nhập</a>
+  <a href="{% url 'account_signup' %}" class="text-lg text-gray-600 hover:text-gray-900">Đăng ký</a>
+{% endif %}
+  </div>
+</header>
   <main class="max-w-6xl mx-auto px-4 py-12">
     <section class="text-center">
       <h1 class="text-4xl font-extrabold mb-4">Chào mừng đến Fashion E-com Mock</h1>
