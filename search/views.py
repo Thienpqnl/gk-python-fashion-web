@@ -17,8 +17,7 @@ def search_by_image(request):
             'status': 'error',
             'message': 'No image file provided'
         }, status=400)
-    
-    # Mock: return first 4 products
+
     # In real app, would run ML model for image similarity
     products = Product.objects.all()[:4]
     data = [
