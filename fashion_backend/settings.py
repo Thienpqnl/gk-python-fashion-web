@@ -18,7 +18,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'shop',
     'products',
-    'cart',
+    'cart.apps.CartConfig',
     'orders',
     'search',
     'django.contrib.sites',
@@ -52,7 +52,7 @@ SITE_ID = 1
 ACCOUNT_AUTHENTICATION_METHOD = 'email'  # hoặc 'username_email' nếu muốn hỗ trợ cả username
 ACCOUNT_EMAIL_REQUIRED = True
 ACCOUNT_USERNAME_REQUIRED = False
-ACCOUNT_EMAIL_VERIFICATION = 'mandatory'  # hoặc 'optional'
+ACCOUNT_EMAIL_VERIFICATION = 'none'  # hoặc 'optional'
 
 # Redirect sau login/logout
 LOGIN_REDIRECT_URL = '/'

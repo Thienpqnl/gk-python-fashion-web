@@ -1,3 +1,0 @@
-Django>=4.2,<5
-# Optional: add djangorestframework if you want APIs later
-# djangorestframework
