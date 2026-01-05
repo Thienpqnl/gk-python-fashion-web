@@ -26,32 +26,33 @@ def get_cart(request):
     total_quantity = 0
     
     for item in cart.items.all():
-        try: 
+        try:
             product = Product.objects.get(id=item.product_id)
-            item_total = product.price * item.quantity
-            
+            # Ensure numeric types for JSON/JS formatting
+            product_price = int(product.price)
+            item_total = product_price * int(item.quantity)
+
             items.append({
                 'product_id': product.id,
                 'product_title': product.title,
-                'product_price': product.price,
+                'product_price': product_price,
                 'product_image': product.image,
-                'quantity': item.quantity,
+                'quantity': int(item.quantity),
                 'item_total': item_total
-            })          
+            })
             total_price += item_total
-            total_quantity += item.quantity
+            total_quantity += int(item.quantity)
         except Product.DoesNotExist:
             item.delete()
     return JsonResponse({
-        
-        'status' : 'success',
-        'data' : {
-            'items' : items,
-            'total price' : total_price,
+        'status': 'success',
+        'data': {
+            'items': items,
+            'total_price': total_price,
             'total_quantity': total_quantity,
             'item_count': len(items)
         }
-    })        
+    })
     
 @require_http_methods(["POST"])
 def add_to_cart(request):

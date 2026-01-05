@@ -107,7 +107,6 @@
         total: parseInt(document.getElementById('total').textContent.replace(/[^\d]/g, '')) || 0
       };
       
-      // Mock order creation
       localStorage.setItem('lastOrder', JSON.stringify({...orderData, id: 'O-' + Date.now(), createdAt: new Date().toISOString()}));
       alert('✓ Đơn hàng được đặt thành công!\nID: ' + 'O-' + Date.now());
       window.location.href = '{% url "shop-order-history" %}';

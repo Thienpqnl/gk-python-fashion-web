@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}Xác nhận đăng xuất - Fashion E-com{% endblock %}
+
+{% block content %}
+<div class="min-h-screen flex items-center justify-center py-12 px-4">
+  <div class="w-full max-w-md">
+    <!-- Header -->
+    <div class="text-center mb-8">
+      <i class="fas fa-sign-out-alt text-amber-500 text-5xl mb-4"></i>
+      <h1 class="font-display text-4xl font-bold text-gray-900 mb-2">Đăng xuất</h1>
+      <p class="text-gray-600">Bạn có chắc muốn đăng xuất?</p>
+    </div>
+
+    <!-- Logout Card -->
+    <div class="bg-white rounded-2xl shadow-lg p-8 mb-6">
+      <p class="text-gray-600 text-center mb-8">
+        Bạn sẽ được đăng xuất khỏi tài khoản của mình. Bạn sẽ cần đăng nhập lại để tiếp tục mua sắm.
+      </p>
+
+      <!-- Logout Form -->
+      <form method="post" class="space-y-4">
+        {% csrf_token %}
+
+        <!-- Confirm Button -->
+        <button type="submit" class="btn-primary w-full">
+          <i class="fas fa-sign-out-alt mr-2"></i>Xác nhận đăng xuất
+        </button>
+
+        <!-- Cancel Button -->
+        <a href="{% url 'shop-index' %}" class="btn-secondary w-full block text-center">
+          <i class="fas fa-times mr-2"></i>Hủy bỏ
+        </a>
+      </form>
+    </div>
+
+    <!-- Info -->
+    <div class="text-center text-gray-600 text-sm">
+      <p>Phiên làm việc của bạn sẽ kết thúc sau 30 phút không hoạt động.</p>
+    </div>
+  </div>
+</div>
+{% endblock %}

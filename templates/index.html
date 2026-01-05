@@ -1,66 +1,107 @@
+{% extends "base.html" %}
 {% load static %}
-<!doctype html>
-<html lang="vi">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <title>Fashion E‑com — Trang chủ</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <meta name="description" content="Mock e‑commerce site using Tailwind v3 CDN" />
-</head>
-<body class="bg-amber-50 text-gray-800">
-<header class="bg-amber-50">
-  <div class="max-w-7xl mx-auto px-4 py-4 flex items-center">
-    <a href="{% url 'shop-index' %}">
-      <img src="{% static 'images/logo1.png' %}" class="h-12 w-12" alt="Logo"/>
-    </a>
-    <nav class="space-x-4 ml-3">
-      <a href="{% url 'shop-products' %}" class="font-display text-lg text-gray-600 hover:text-gray-900">Sản phẩm</a>
-      <a href="{% url 'shop-cart' %}" class="font-display text-lg text-gray-600 hover:text-gray-900">Giỏ hàng</a>
-      <a href="{% url 'shop-ai-search' %}" class="text-lg text-gray-600 hover:text-gray-900">Tìm kiếm</a>
 
+{% block title %}Fashion E‑com — Trang chủ{% endblock %}
+
+{% block content %}
+<main class="max-w-6xl mx-auto px-4 py-12">
+  <!-- Hero Section -->
+  <section class="text-center mb-16">
+    <h1 class="font-display text-5xl font-extrabold mb-4 text-gray-900">
+      Chào mừng đến Fashion E-com
+    </h1>
+    <p class="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
+      Khám phá bộ sưu tập thời trang mới nhất với công nghệ tìm kiếm AI thông minh
+    </p>
+    <div class="flex flex-wrap justify-center gap-4">
+      <a href="{% url 'shop-products' %}" class="btn-primary">
+        <i class="fas fa-shopping-bags mr-2"></i>Xem sản phẩm
+      </a>
+      <a href="{% url 'shop-ai-search' %}" class="btn-secondary">
+        <i class="fas fa-camera mr-2"></i>Tìm bằng ảnh
+      </a>
+    </div>
+  </section>
+
+  <!-- Featured Products -->
+  <section class="mb-16">
+    <div class="flex items-center justify-between mb-8">
+      <h2 class="font-display text-3xl font-bold text-gray-900">Sản phẩm nổi bật</h2>
+      <a href="{% url 'shop-products' %}" class="text-amber-600 hover:text-amber-700 font-semibold inline-flex items-center">
+        Xem tất cả
+        <i class="fas fa-arrow-right ml-2"></i>
+      </a>
+    </div>
+    
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+      {% for product in featured_products %}
+      <article class="bg-white rounded-lg shadow hover:shadow-xl transition transform hover:scale-105 overflow-hidden">
+        <div class="aspect-square overflow-hidden bg-gray-200">
+          <img src="{{ product.image }}" alt="{{ product.title }}" class="w-full h-full object-cover" />
+        </div>
+        <div class="p-4">
+          <h3 class="font-semibold text-gray-900 truncate">{{ product.title }}</h3>
+          <p class="text-amber-600 font-bold mt-2">{{ product.price|floatformat:0 }}đ</p>
+          <a href="{% url 'shop-product-detail' product.id %}" class="block mt-3 text-center py-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded hover:opacity-90 transition text-sm font-semibold">
+            Chi tiết
+          </a>
+        </div>
+      </article>
+      {% empty %}
+      <p class="col-span-full text-center text-gray-500 py-8">Không có sản phẩm nào</p>
+      {% endfor %}
+    </div>
+  </section>
+
+  <!-- Features Section -->
+  <section class="bg-gradient-to-r from-amber-50 to-orange-50 rounded-2xl p-8 mb-16">
+    <h2 class="font-display text-3xl font-bold text-gray-900 mb-8 text-center">Tại sao chọn chúng tôi?</h2>
+    
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+      <!-- Feature 1 -->
+      <div class="text-center">
+        <div class="bg-white rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4 shadow-lg">
+          <i class="fas fa-magic text-amber-500 text-2xl"></i>
+        </div>
+        <h3 class="font-bold text-gray-900 mb-2 text-lg">Tìm kiếm AI</h3>
+        <p class="text-gray-600">Tìm sản phẩm bằng hình ảnh với công nghệ AI hiện đại</p>
+      </div>
+
+      <!-- Feature 2 -->
+      <div class="text-center">
+        <div class="bg-white rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4 shadow-lg">
+          <i class="fas fa-shipping-fast text-blue-500 text-2xl"></i>
+        </div>
+        <h3 class="font-bold text-gray-900 mb-2 text-lg">Giao hàng nhanh</h3>
+        <p class="text-gray-600">Vận chuyển miễn phí cho các đơn hàng trên 500k</p>
+      </div>
+
+      <!-- Feature 3 -->
+      <div class="text-center">
+        <div class="bg-white rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4 shadow-lg">
+          <i class="fas fa-lock text-green-500 text-2xl"></i>
+        </div>
+        <h3 class="font-bold text-gray-900 mb-2 text-lg">Thanh toán an toàn</h3>
+        <p class="text-gray-600">Bảo mật giao dịch 100% với SSL mã hóa</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA Section -->
+  <section class="bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-2xl p-12 text-center">
+    <h2 class="font-display text-4xl font-bold mb-4">Sẵn sàng bắt đầu mua sắm?</h2>
+    <p class="text-amber-100 mb-8 text-lg max-w-2xl mx-auto">
+      Tham gia cộng đồng hàng ngàn khách hàng hài lòng
+    </p>
     {% if user.is_authenticated %}
-  <a href="{% url 'account_logout' %}" class="text-lg text-gray-600 hover:text-gray-900">Đăng xuất</a>
-  <!-- hoặc -->
-  <span class="text-lg text-gray-700">Xin chào, {{ user.email|truncatechars:20 }}</span>
-{% else %}
-  <a href="{% url 'account_login' %}" class="text-lg text-gray-600 hover:text-gray-900">Đăng nhập</a>
-  <a href="{% url 'account_signup' %}" class="text-lg text-gray-600 hover:text-gray-900">Đăng ký</a>
-{% endif %}
-  </div>
-</header>
-  <main class="max-w-6xl mx-auto px-4 py-12">
-    <section class="text-center">
-      <h1 class="text-4xl font-extrabold mb-4">Chào mừng đến Fashion E-com</h1>
-      <p class="text-gray-600 mb-6">Website demo danh sách sản phẩm, chi tiết, giỏ hàng và tìm kiếm AI.</p>
-      <div class="flex justify-center gap-4">
-        <a href="{% url 'shop-products' %}" class="px-6 py-3 bg-indigo-600 text-white rounded-lg">Xem sản phẩm</a>
-        <a href="{% url 'shop-ai-search' %}" class="px-6 py-3 border border-gray-300 rounded-lg">Tìm bằng ảnh</a>
-      </div>
-    </section>
-
-    <section class="mt-12">
-      <h2 class="text-2xl font-semibold mb-4">Các sản phẩm nổi bật</h2>
-      <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-
-        {% for product in featured_products %}
-        <article class="bg-white rounded shadow p-4 hover:shadow-lg transition">
-          <img src="{{ product.image }}" alt="{{ product.title }}" class="w-full h-40 object-cover mb-3 rounded" />
-          <h3 class="font-semibold">{{ product.title }}</h3>
-          <p class="text-sm text-gray-600">{{ product.description|truncatewords:5 }}</p>
-          <div class="mt-2 flex justify-between items-center">
-            <span class="font-bold">₫{{ product.price|floatformat:0|default:"0" }}</span>
-            <a href="{% url 'shop-product-detail' product.id %}" class="text-indigo-600 text-sm hover:underline">Chi tiết</a>
-          </div>
-        </article>
-        {% endfor %}
-      </div>
-    </section>
-  </main>
-
-  <footer class="bg-white border-t mt-12">
-    <div class="max-w-6xl mx-auto px-4 py-6 text-sm text-gray-500">© Mock Fashion — chỉ dùng cho demo</div>
-  </footer>
-</body>
-</html>
+      <a href="{% url 'shop-products' %}" class="inline-block px-8 py-3 bg-white text-amber-600 font-bold rounded-lg hover:shadow-lg transition">
+        <i class="fas fa-shopping-bags mr-2"></i>Khám phá sản phẩm
+      </a>
+    {% else %}
+      <a href="{% url 'account_signup' %}" class="inline-block px-8 py-3 bg-white text-amber-600 font-bold rounded-lg hover:shadow-lg transition">
+        <i class="fas fa-user-plus mr-2"></i>Đăng ký ngay
+      </a>
+    {% endif %}
+  </section>
+</main>
+{% endblock %}

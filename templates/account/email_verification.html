@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}Email xác thực - Fashion E-com{% endblock %}
+
+{% block content %}
+<div class="min-h-screen flex items-center justify-center py-12 px-4">
+  <div class="w-full max-w-md">
+    <!-- Header -->
+    <div class="text-center mb-8">
+      <i class="fas fa-envelope-open-text text-amber-500 text-5xl mb-4"></i>
+      <h1 class="font-display text-4xl font-bold text-gray-900 mb-2">Xác thực Email</h1>
+      <p class="text-gray-600">Xác thực email của bạn để kích hoạt tài khoản</p>
+    </div>
+
+    <!-- Verification Card -->
+    <div class="bg-white rounded-2xl shadow-lg p-8 mb-6">
+      <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+        <div class="flex items-start">
+          <i class="fas fa-info-circle text-blue-600 mt-1 mr-3"></i>
+          <div>
+            <h3 class="font-semibold text-blue-900 mb-1">Chúng tôi đã gửi email xác thực</h3>
+            <p class="text-blue-800 text-sm">Vui lòng kiểm tra email của bạn và nhấp vào liên kết xác thực để kích hoạt tài khoản.</p>
+          </div>
+        </div>
+      </div>
+
+      <p class="text-gray-600 text-center mb-6">
+        <strong>Email:</strong> <span class="font-mono text-gray-900">{{ primary_email }}</span>
+      </p>
+
+      <!-- Resend Form -->
+      <form method="post" class="space-y-4">
+        {% csrf_token %}
+
+        <button type="submit" class="btn-primary w-full" name="action" value="send">
+          <i class="fas fa-redo mr-2"></i>Gửi lại email xác thực
+        </button>
+      </form>
+
+      <!-- Back -->
+      <div class="mt-6 text-center">
+        <a href="{% url 'shop-index' %}" class="text-amber-600 hover:text-amber-700 font-semibold inline-flex items-center">
+          <i class="fas fa-arrow-left mr-2"></i>Quay lại trang chủ
+        </a>
+      </div>
+    </div>
+
+    <!-- Help -->
+    <div class="bg-amber-50 border border-amber-200 rounded-lg p-4">
+      <div class="flex items-start">
+        <i class="fas fa-headset text-amber-600 mt-1 mr-3"></i>
+        <div>
+          <h4 class="font-semibold text-amber-900 text-sm mb-1">Cần giúp đỡ?</h4>
+          <p class="text-amber-800 text-xs">Nếu bạn không nhận được email, hãy kiểm tra thư mục Spam hoặc <a href="mailto:support@fashion.com" class="underline font-semibold">liên hệ với chúng tôi</a>.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

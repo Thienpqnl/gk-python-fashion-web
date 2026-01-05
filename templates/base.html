@@ -1,0 +1,143 @@
+{% load static %}
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <title>{% block title %}Fashion E-com{% endblock %}</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    :root {
+      --primary-color: #1f2937;
+      --accent-color: #f59e0b;
+      --light-bg: #fef3c7;
+    }
+    
+    body {
+      font-family: 'Inter', sans-serif;
+    }
+    
+    .font-display {
+      font-family: 'Playfair Display', serif;
+    }
+    
+    .gradient-accent {
+      background: linear-gradient(135deg, #f59e0b 0%, #f97316 100%);
+    }
+    
+    .btn-primary {
+      @apply px-6 py-3 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-lg font-semibold hover:shadow-lg transition-all duration-300;
+    }
+    
+    .btn-secondary {
+      @apply px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-lg font-semibold hover:border-gray-400 hover:bg-gray-50 transition-all duration-300;
+    }
+    
+    .input-field {
+      @apply w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition;
+    }
+  </style>
+  {% block extra_css %}{% endblock %}
+</head>
+<body class="bg-gradient-to-br from-amber-50 to-orange-50 text-gray-800">
+
+<!-- Header -->
+<header class="bg-white shadow-sm sticky top-0 z-50">
+  <div class="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
+    <a href="{% url 'shop-index' %}" class="flex items-center space-x-2 hover:opacity-80 transition">
+      <img src="{% static 'images/logo1.png' %}" class="h-10 w-10" alt="Logo"/>
+      <span class="font-display text-xl font-semibold text-gray-900">Fashion</span>
+    </a>
+    <nav class="hidden md:flex items-center space-x-6">
+      <a href="{% url 'shop-products' %}" class="text-gray-600 hover:text-amber-600 transition font-medium">Sản phẩm</a>
+      <a href="{% url 'shop-cart' %}" class="text-gray-600 hover:text-amber-600 transition font-medium flex items-center">
+        <i class="fas fa-shopping-cart mr-2"></i>Giỏ hàng
+      </a>
+      <a href="{% url 'shop-ai-search' %}" class="text-gray-600 hover:text-amber-600 transition font-medium">Tìm kiếm</a>
+      {% if user.is_authenticated %}
+        <a href="{% url 'shop-order-history' %}" class="text-gray-600 hover:text-amber-600 transition font-medium">Đơn hàng</a>
+        <div class="relative group">
+          <button class="flex items-center space-x-2 text-gray-600 hover:text-amber-600 transition font-medium">
+            <i class="fas fa-user-circle"></i>
+            <span>{{ user.email|truncatechars:15 }}</span>
+          </button>
+          <div class="absolute right-0 hidden group-hover:block bg-white rounded-lg shadow-lg py-2 min-w-48">
+            <a href="{% url 'account_change_password' %}" class="block px-4 py-2 text-gray-700 hover:bg-amber-50 transition">
+              <i class="fas fa-lock mr-2"></i>Đổi mật khẩu
+            </a>
+            <a href="{% url 'account_logout' %}" class="block px-4 py-2 text-gray-700 hover:bg-amber-50 transition border-t">
+              <i class="fas fa-sign-out-alt mr-2"></i>Đăng xuất
+            </a>
+          </div>
+        </div>
+      {% else %}
+        <a href="{% url 'account_login' %}" class="text-gray-600 hover:text-amber-600 transition font-medium">Đăng nhập</a>
+        <a href="{% url 'account_signup' %}" class="btn-primary !px-4 !py-2 text-sm">Đăng ký</a>
+      {% endif %}
+    </nav>
+  </div>
+</header>
+
+<!-- Main Content -->
+<main class="min-h-screen">
+  {% if messages %}
+  <div class="max-w-7xl mx-auto px-4 py-4">
+    {% for message in messages %}
+      <div class="rounded-lg p-4 {% if message.tags %}{{ message.tags }}{% else %}bg-blue-100 text-blue-800{% endif %}" role="alert">
+        {{ message }}
+      </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+  
+  {% block content %}{% endblock %}
+</main>
+
+<!-- Footer -->
+<footer class="bg-gray-900 text-gray-300 mt-16">
+  <div class="max-w-7xl mx-auto px-4 py-12">
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
+      <div>
+        <h3 class="font-display text-lg font-semibold text-white mb-4">Fashion E-com</h3>
+        <p class="text-sm">Nền tảng mua sắm thời trang hiện đại với công nghệ AI</p>
+      </div>
+      <div>
+        <h4 class="font-semibold text-white mb-4">Cửa hàng</h4>
+        <ul class="space-y-2 text-sm">
+          <li><a href="{% url 'shop-products' %}" class="hover:text-amber-500 transition">Tất cả sản phẩm</a></li>
+          <li><a href="{% url 'shop-ai-search' %}" class="hover:text-amber-500 transition">Tìm kiếm AI</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4 class="font-semibold text-white mb-4">Tài khoản</h4>
+        <ul class="space-y-2 text-sm">
+          {% if user.is_authenticated %}
+            <li><a href="{% url 'account_change_password' %}" class="hover:text-amber-500 transition">Đổi mật khẩu</a></li>
+            <li><a href="{% url 'account_logout' %}" class="hover:text-amber-500 transition">Đăng xuất</a></li>
+          {% else %}
+            <li><a href="{% url 'account_login' %}" class="hover:text-amber-500 transition">Đăng nhập</a></li>
+            <li><a href="{% url 'account_signup' %}" class="hover:text-amber-500 transition">Đăng ký</a></li>
+          {% endif %}
+        </ul>
+      </div>
+      <div>
+        <h4 class="font-semibold text-white mb-4">Liên hệ</h4>
+        <ul class="space-y-2 text-sm">
+          <li><a href="mailto:support@fashion.com" class="hover:text-amber-500 transition">Email hỗ trợ</a></li>
+          <li class="flex space-x-3">
+            <a href="#" class="hover:text-amber-500 transition"><i class="fab fa-facebook"></i></a>
+            <a href="#" class="hover:text-amber-500 transition"><i class="fab fa-instagram"></i></a>
+          </li>
+        </ul>
+      </div>
+    </div>
+    <div class="border-t border-gray-700 pt-8">
+      <p class="text-center text-sm">&copy; 2024 Fashion E-com. All rights reserved.</p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
