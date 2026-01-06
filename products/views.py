@@ -1,8 +1,8 @@
 from django.shortcuts import render, get_object_or_404
 from django.http import JsonResponse
-from django.db.models import Q
 from .models import Product, Category
-
+from reviews.models import Review
+from django.db.models import Avg, Count,Q
 
 def list_products(request):
     """List all products in JSON format."""
@@ -120,3 +120,48 @@ def filter_by_category(request, category_id):
         'data': data,
         'count': len(data)
     })
+
+
+
+
+
+def product_detail_view(request, product_id):
+    # 1. Lấy thông tin sản phẩm
+    product = get_object_or_404(Product, id=product_id)
+
+    reviews = Review.objects.filter(product=product).select_related('user').order_by('-created_at')
+    
+    total_reviews = reviews.count()
+    avg_rating = reviews.aggregate(Avg('rating'))['rating__avg'] or 0
+    
+    sentiment_stats = reviews.aggregate(
+        pos=Count('id', filter=Q(sentiment='Positive')),
+        neg=Count('id', filter=Q(sentiment='Negative')),
+    )
+    
+    pos_count = sentiment_stats['pos']
+    neg_count = sentiment_stats['neg']
+    
+    # Tính phần trăm
+    if total_reviews > 0:
+        pos_percent = int((pos_count / total_reviews) * 100)
+        neg_percent = int((neg_count / total_reviews) * 100)
+        neu_percent = 100 - pos_percent - neg_percent
+    else:
+        pos_percent = 0
+        neg_percent = 0
+        neu_percent = 0
+
+
+    context = {
+        'product': product,
+        'reviews': reviews,     
+        'review_count': total_reviews,
+        'avg_rating': round(avg_rating, 1),
+        'pos_percent': pos_percent,
+        'neg_percent': neg_percent,
+        'neu_percent': neu_percent,
+    }
+    
+
+    return render(request, 'product-detail.html', context)

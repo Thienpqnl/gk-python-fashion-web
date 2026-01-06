@@ -11,41 +11,54 @@
   <header class="bg-white shadow">
     <div class="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
       <a href="{% url 'shop-index' %}" class="text-2xl font-bold">Fashion Mock</a>
-      <nav class="space-x-4">
-        <a href="{% url 'shop-products' %}" class="text-sm text-gray-600">Danh sách</a>
-        <a href="{% url 'shop-cart' %}" class="text-sm text-gray-600">Giỏ Hàng</a>
-      </nav>
     </div>
   </header>
+
   <main class="max-w-3xl mx-auto px-4 py-12">
     <h1 class="text-3xl font-bold mb-6">Thanh toán</h1>
+    
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
       <div class="lg:col-span-2">
         <div class="bg-white p-6 rounded shadow">
           <h2 class="text-xl font-semibold mb-4">Thông tin giao hàng</h2>
           <form id="checkoutForm">
             <div class="mb-4">
-              <label class="block text-sm font-semibold mb-2">Họ và tên *</label>
-              <input type="text" name="fullname" required class="w-full border border-gray-300 p-3 rounded" placeholder="Nguyễn Văn A" />
+              <label class="block text-sm font-semibold mb-2">Họ và tên <span class="text-red-500">*</span></label>
+              <input type="text" name="fullname" required class="w-full border border-gray-300 p-3 rounded focus:outline-none focus:border-indigo-500" placeholder="Nguyễn Văn A" />
+              <p class="text-red-500 text-xs mt-1 hidden" id="err-fullname">Vui lòng nhập họ tên</p>
             </div>
+            
             <div class="mb-4">
-              <label class="block text-sm font-semibold mb-2">Email *</label>
-              <input type="email" name="email" required class="w-full border border-gray-300 p-3 rounded" placeholder="example@mail.com" />
+              <label class="block text-sm font-semibold mb-2">Email <span class="text-red-500">*</span></label>
+              <input type="email" name="email" required class="w-full border border-gray-300 p-3 rounded focus:outline-none focus:border-indigo-500" placeholder="example@mail.com" />
             </div>
+            
             <div class="mb-4">
-              <label class="block text-sm font-semibold mb-2">Địa chỉ *</label>
-              <textarea name="address" required class="w-full border border-gray-300 p-3 rounded" rows="3" placeholder="Số nhà, đường phố..."></textarea>
+              <label class="block text-sm font-semibold mb-2">Địa chỉ nhận hàng <span class="text-red-500">*</span></label>
+              <textarea name="address" required class="w-full border border-gray-300 p-3 rounded focus:outline-none focus:border-indigo-500" rows="3" placeholder="Số nhà, đường phố, phường/xã..."></textarea>
             </div>
+
+            <div class="mb-4">
+                <label class="block text-sm font-semibold mb-2">Số điện thoại <span class="text-red-500">*</span></label>
+                <input type="tel" name="phone" required class="w-full border border-gray-300 p-3 rounded focus:outline-none focus:border-indigo-500" placeholder="0909xxxxxx" />
+              </div>
             
             <h2 class="text-xl font-semibold mb-4 mt-6">Phương thức thanh toán</h2>
             <div class="space-y-3 mb-6">
-              <label class="flex items-center">
-                <input type="radio" name="payment" value="cod" checked class="mr-3" />
-                <span>Thanh toán khi nhận hàng (COD)</span>
+              <label class="flex items-center cursor-pointer p-3 border rounded hover:bg-gray-50">
+                <input type="radio" name="payment_method" value="COD" checked class="mr-3 w-5 h-5 text-indigo-600" />
+                <div>
+                    <span class="font-medium">Thanh toán khi nhận hàng (COD)</span>
+                    <p class="text-xs text-gray-500">Bạn sẽ thanh toán tiền mặt cho shipper khi nhận hàng.</p>
+                </div>
               </label>
-              <label class="flex items-center">
-                <input type="radio" name="payment" value="bank" class="mr-3" />
-                <span>Chuyển khoản ngân hàng</span>
+              
+              <label class="flex items-center cursor-pointer p-3 border rounded hover:bg-gray-50">
+                <input type="radio" name="payment_method" value="BANK" class="mr-3 w-5 h-5 text-indigo-600" />
+                <div>
+                    <span class="font-medium">Chuyển khoản ngân hàng</span>
+                    <p class="text-xs text-gray-500">Quét mã QR qua ứng dụng ngân hàng.</p>
+                </div>
               </label>
             </div>
           </form>
@@ -55,64 +68,158 @@
       <div class="lg:col-span-1">
         <div id="orderSummary" class="bg-white p-6 rounded shadow sticky top-4">
           <h2 class="text-lg font-semibold mb-4">Tóm tắt đơn hàng</h2>
-          <div id="summaryItems" class="space-y-2 mb-4 pb-4 border-b text-sm">
-            <p class="text-gray-500">Đang tải...</p>
+          
+          <div id="summaryItems" class="space-y-3 mb-4 pb-4 border-b text-sm max-h-60 overflow-y-auto">
+            <p class="text-gray-500 text-center py-4">Đang tải thông tin...</p>
           </div>
+
           <div class="space-y-3">
-            <div class="flex justify-between">
+            <div class="flex justify-between text-gray-600">
               <span>Tạm tính:</span>
               <span id="subtotal">₫0</span>
             </div>
-            <div class="flex justify-between">
+            <div class="flex justify-between text-gray-600">
               <span>Vận chuyển:</span>
-              <span>Miễn phí</span>
+              <span class="text-green-600">Miễn phí</span>
             </div>
-            <div class="border-t pt-3 flex justify-between font-semibold text-lg">
+            <div class="border-t pt-3 flex justify-between font-bold text-lg text-gray-900">
               <span>Tổng cộng:</span>
               <span id="total" class="text-indigo-600">₫0</span>
             </div>
           </div>
-          <button onclick="completeOrder()" class="w-full mt-4 px-4 py-3 bg-green-600 text-white rounded font-semibold hover:bg-green-700 transition">Đặt hàng</button>
-          <a href="{% url 'shop-cart' %}" class="block text-center mt-2 text-indigo-600 hover:underline text-sm">← Quay lại giỏ hàng</a>
+
+          <button type="button" onclick="completeOrder()" class="w-full mt-6 px-4 py-3 bg-indigo-600 text-white rounded-lg font-bold hover:bg-indigo-700 transition duration-200 shadow-lg">
+            ĐẶT HÀNG NGAY
+          </button>
+          
+          <a href="{% url 'shop-cart' %}" class="block text-center mt-3 text-indigo-600 hover:underline text-sm font-medium">
+            ← Quay lại giỏ hàng
+          </a>
         </div>
       </div>
     </div>
   </main>
+
   <script src="/static/js/cart.js"></script>
-  <script>
+
+
+
+
+
+
+<script>
+    let finalTotalAmount = 0;
+
+    // --- HÀM 1: LOAD DỮ LIỆU KHI VÀO TRANG ---
     async function loadCheckoutData() {
       try {
+        const selectedIdsJson = sessionStorage.getItem('checkout_items');
+        if (!selectedIdsJson) {
+            alert("Bạn chưa chọn sản phẩm nào!");
+            window.location.href = "{% url 'shop-cart' %}";
+            return;
+        }
+        const selectedIds = JSON.parse(selectedIdsJson).map(id => String(id));
+
         const response = await fetch('/api/cart/');
         const data = await response.json();
+
         if (data.status === 'success') {
-          const { items, total_price } = data.data;
-          document.getElementById('summaryItems').innerHTML = items.map(item => 
-            `<div class="flex justify-between"><span>${item.product_title} x${item.quantity}</span><span>₫${item.item_total.toLocaleString('vi-VN')}</span></div>`
-          ).join('');
-          document.getElementById('subtotal').textContent = '₫' + total_price.toLocaleString('vi-VN');
-          document.getElementById('total').textContent = '₫' + total_price.toLocaleString('vi-VN');
+          const allItems = data.data.items; 
+
+          const checkoutItems = allItems.filter(item => 
+              selectedIds.includes(String(item.product_id))
+          );
+
+          if (checkoutItems.length === 0) {
+             alert("Sản phẩm đã chọn không còn tồn tại!");
+             window.location.href = "{% url 'shop-cart' %}";
+             return;
+          }
+
+          let subTotal = 0;
+          const itemsHtml = checkoutItems.map(item => {
+              subTotal += item.item_total;
+              return `
+                <div class="flex gap-3 items-start py-2 border-b border-gray-100">
+                    <div class="relative w-14 h-14 flex-shrink-0">
+                        <img src="${item.product_image || 'https://via.placeholder.com/150'}" class="w-full h-full object-cover rounded border">
+                        <span class="absolute -top-2 -right-2 bg-gray-600 text-white text-xs w-5 h-5 flex items-center justify-center rounded-full font-bold">
+                            ${item.quantity}
+                        </span>
+                    </div>
+                    <div class="flex-1">
+                        <p class="font-medium text-sm text-gray-900">${item.product_title}</p>
+                        <p class="text-xs text-gray-500">₫${item.item_total.toLocaleString('vi-VN')}</p>
+                    </div>
+                </div>`;
+          }).join('');
+          
+          finalTotalAmount = subTotal;
+          document.getElementById('summaryItems').innerHTML = itemsHtml;
+          
+          const strTotal = '₫' + subTotal.toLocaleString('vi-VN');
+          document.getElementById('subtotal').textContent = strTotal;
+          document.getElementById('total').textContent = strTotal;
         }
       } catch (err) {
-        console.error('Error loading checkout:', err);
+        console.error('Lỗi load trang:', err);
       }
     }
 
-    function completeOrder() {
-      const formData = new FormData(document.getElementById('checkoutForm'));
-      const orderData = {
-        fullname: formData.get('fullname'),
-        email: formData.get('email'),
-        address: formData.get('address'),
-        payment_method: formData.get('payment'),
-        total: parseInt(document.getElementById('total').textContent.replace(/[^\d]/g, '')) || 0
-      };
-      
-      localStorage.setItem('lastOrder', JSON.stringify({...orderData, id: 'O-' + Date.now(), createdAt: new Date().toISOString()}));
-      alert('✓ Đơn hàng được đặt thành công!\nID: ' + 'O-' + Date.now());
-      window.location.href = '{% url "shop-order-history" %}';
+    // --- HÀM 2: GỬI ĐƠN HÀNG (KẾT HỢP) ---
+    async function completeOrder() {
+        const formData = new FormData(document.getElementById('checkoutForm'));
+        
+        if(!formData.get('fullname') || !formData.get('phone') || !formData.get('address')){
+            alert("Vui lòng điền đầy đủ thông tin giao hàng!");
+            return;
+        }
+
+        const selectedIdsJson = sessionStorage.getItem('checkout_items');
+        if (!selectedIdsJson) {
+            alert("Lỗi: Không tìm thấy sản phẩm. Vui lòng chọn lại.");
+            return;
+        }
+        const selectedIds = JSON.parse(selectedIdsJson);
+        const orderData = {
+            fullname: formData.get('fullname'),
+            email: formData.get('email'),
+            address: formData.get('address'),
+            phone: formData.get('phone'),
+            payment_method: formData.get('payment_method'),
+            items: selectedIds 
+        };
+        
+        console.log("Đang gửi dữ liệu:", orderData);
+
+
+        try {
+            const response = await fetch('/api/orders/create/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}' // Django cần cái này
+                },
+                body: JSON.stringify(orderData)
+            });
+            
+            const data = await response.json();
+            
+            if (data.status === 'success') {
+                alert('✓ Đặt hàng thành công! Mã đơn: ' + data.order_id);
+                sessionStorage.removeItem('checkout_items'); 
+                window.location.href = "{% url 'shop-order-history' %}"; 
+            } else {
+                alert('Lỗi từ Server: ' + data.message);
+            }
+        } catch (err) {
+            console.error(err);
+            alert('Vui lòng đăng nhập trước khi mua');
+        }
     }
 
     document.addEventListener('DOMContentLoaded', loadCheckoutData);
-  </script>
+</script>
 </body>
 </html>

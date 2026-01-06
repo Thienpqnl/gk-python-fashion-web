@@ -56,108 +56,144 @@
   </main>
 
   <script src="/static/js/cart.js"></script>
-  <script>
+  
+
+<script>
+    // Biến toàn cục lưu dữ liệu giỏ hàng
+    let currentCartItems = []; 
+
+    // 1. Tải giỏ hàng khi vào trang
     async function loadCart() {
-      try {
-        const response = await fetch('/api/cart/');
-        const data = await response.json();
-        
-        if (data.status === 'success') {
-          renderCartItems(data.data);
+        try {
+            const response = await fetch('/api/cart/');
+            const data = await response.json();
+            
+            if (data.status === 'success') {
+                currentCartItems = data.data.items; // Lưu dữ liệu vào biến
+                renderCartItems();
+            }
+        } catch (err) {
+            console.error('Lỗi tải giỏ hàng:', err);
         }
-      } catch (err) {
-        console.error('Error loading cart:', err);
-      }
     }
 
-    function renderCartItems(cartData) {
-      const container = document.getElementById('cartItems');
-      const { items, total_price, total_quantity } = cartData;
+    // 2. Vẽ giao diện (Render HTML)
+    function renderCartItems() {
+        const container = document.getElementById('cartItems');
 
-      if (items.length === 0) {
-        container.innerHTML = `
-          <div class="p-12 text-center">
-            <p class="text-gray-500 mb-4">Giỏ hàng của bạn trống</p>
-            <a href="{% url 'shop-products' %}" class="text-indigo-600 hover:underline">Tiếp tục mua sắm</a>
-          </div>
-        `;
-      } else {
-        container.innerHTML = items.map((item, i) => `
-          <div class="p-4 border-b flex gap-4 hover:bg-gray-50">
-            <img src="${item.product_image}" alt="${item.product_title}" class="w-24 h-24 object-cover rounded" />
+        if (currentCartItems.length === 0) {
+            container.innerHTML = `<div class="p-12 text-center text-gray-500">Giỏ hàng trống</div>`;
+            updateSummary(); // Reset tổng tiền về 0
+            return;
+        }
+
+        container.innerHTML = currentCartItems.map((item, index) => `
+          <div class="p-4 border-b flex gap-4 hover:bg-gray-50 items-center">
+            
+            <div>
+                <input type="checkbox" class="cart-checkbox w-5 h-5 text-indigo-600 rounded" 
+                       data-id="${item.product_id}"
+                       data-price="${item.item_total}" 
+                       onchange="updateSummary()">
+            </div>
+
+            <img src="${item.product_image}" class="w-24 h-24 object-cover rounded border" />
+            
             <div class="flex-1">
-              <h3 class="font-semibold">${item.product_title}</h3>
-              <p class="text-sm text-gray-600 mt-1">₫${item.product_price.toLocaleString('vi-VN')}</p>
-              <div class="flex items-center gap-2 mt-3">
-                <button class="px-2 py-1 border border-gray-300 rounded hover:bg-gray-100" onclick="updateQuantity(${item.product_id}, ${item.quantity - 1})">−</button>
-                <input type="number" value="${item.quantity}" min="1" class="w-12 text-center border border-gray-300 rounded" readonly />
-                <button class="px-2 py-1 border border-gray-300 rounded hover:bg-gray-100" onclick="updateQuantity(${item.product_id}, ${item.quantity + 1})">+</button>
-                <button class="ml-auto text-red-600 text-sm hover:underline" onclick="removeFromCart(${item.product_id})">Xóa</button>
+              <h3 class="font-semibold text-gray-800">${item.product_title}</h3>
+              <p class="text-sm text-gray-500">Đơn giá: ₫${item.product_price.toLocaleString('vi-VN')}</p>
+              
+              <div class="flex items-center gap-2 mt-2">
+                 <span class="text-sm text-gray-600">Số lượng: ${item.quantity}</span>
               </div>
             </div>
+            
             <div class="text-right">
-              <p class="font-semibold">₫${item.item_total.toLocaleString('vi-VN')}</p>
+              <p class="font-bold text-indigo-600">₫${item.item_total.toLocaleString('vi-VN')}</p>
+              <button class="text-xs text-red-500 hover:underline mt-1" onclick="removeFromCart(${item.product_id})">Xóa</button>
             </div>
           </div>
         `).join('');
-      }
-
-      // Update summary
-      document.getElementById('subtotal').textContent = '₫' + total_price.toLocaleString('vi-VN');
-      document.getElementById('total').textContent = '₫' + total_price.toLocaleString('vi-VN');
+        
+        updateSummary(); // Tính lại tiền (lần đầu load thì là 0 vì chưa tick cái nào)
     }
 
-    async function updateQuantity(productId, newQty) {
-      if (newQty <= 0) {
-        removeFromCart(productId);
+
+
+
+    
+    // 3. Hàm tính tổng tiền (Chỉ tính những cái được Check)
+    function updateSummary() {
+        const checkboxes = document.querySelectorAll('.cart-checkbox');
+        let total = 0;
+        let count = 0;
+
+        checkboxes.forEach(box => {
+            if (box.checked) {
+                total += parseInt(box.getAttribute('data-price'));
+                count++;
+            }
+        });
+
+        // Cập nhật giao diện
+        document.getElementById('subtotal').textContent = '₫' + total.toLocaleString('vi-VN');
+        document.getElementById('total').textContent = '₫' + total.toLocaleString('vi-VN');
+        
+        // Disable nút Thanh toán nếu chưa chọn gì
+        const btn = document.getElementById('checkoutBtn');
+        if (count === 0) {
+            btn.classList.add('opacity-50', 'cursor-not-allowed');
+            btn.disabled = true;
+            btn.innerText = "Vui lòng chọn sản phẩm";
+        } else {
+            btn.classList.remove('opacity-50', 'cursor-not-allowed');
+            btn.disabled = false;
+            btn.innerText = `Thanh toán (${count} sản phẩm)`;
+        }
+    }
+
+
+  async function removeFromCart(productId) {
+        if(!confirm("Bạn có chắc muốn xóa sản phẩm này?")) return; 
+
+        try {
+            const response = await fetch('/api/cart/remove/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: JSON.stringify({ product_id: productId })
+            });
+            const data = await response.json();
+            if (data.status === 'success') {
+                loadCart(); // Tải lại giỏ hàng sau khi xóa thành công
+            } else {
+                alert("Lỗi: " + data.message);
+            }
+        } catch (err) {
+            console.error('Error removing from cart:', err);
+        }
+    }
+
+function goCheckout() {
+    // Tìm tất cả checkbox đang được tick
+    const checkedBoxes = document.querySelectorAll('.cart-checkbox:checked');
+    // Lấy ra danh sách ID sản phẩm
+    const selectedIds = Array.from(checkedBoxes).map(box => box.getAttribute('data-id'));
+    // Kiểm tra nếu chưa chọn gì
+    if (selectedIds.length === 0) {
+        alert("Vui lòng chọn ít nhất 1 sản phẩm để thanh toán!");
         return;
-      }
-      
-      try {
-        const response = await fetch('/api/cart/update/', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': '{{ csrf_token }}'
-          },
-          body: JSON.stringify({
-            product_id: productId,
-            quantity: newQty
-          })
-        });
-        const data = await response.json();
-        if (data.status === 'success') {
-          loadCart();
-        }
-      } catch (err) {
-        console.error('Error updating cart:', err);
-      }
     }
-
-    async function removeFromCart(productId) {
-      try {
-        const response = await fetch('/api/cart/remove/', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': '{{ csrf_token }}'
-          },
-          body: JSON.stringify({ product_id: productId })
-        });
-        const data = await response.json();
-        if (data.status === 'success') {
-          loadCart();
-        }
-      } catch (err) {
-        console.error('Error removing from cart:', err);
-      }
-    }
-
-    function goCheckout() {
-      window.location.href = '{% url "shop-checkout" %}';
-    }
+    // Lưu vào bộ nhớ trình duyệt (sessionStorage)
+    sessionStorage.setItem('checkout_items', JSON.stringify(selectedIds));
+    // Chuyển trang
+    window.location.href = "{% url 'shop-checkout' %}"; 
+}
 
     document.addEventListener('DOMContentLoaded', loadCart);
-  </script>
+</script>
+
 </body>
 </html>

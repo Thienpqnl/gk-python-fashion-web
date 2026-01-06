@@ -21,6 +21,7 @@ INSTALLED_APPS = [
     'cart.apps.CartConfig',
     'orders',
     'search',
+    'reviews',
     'django.contrib.sites',
     
         # django-allauth

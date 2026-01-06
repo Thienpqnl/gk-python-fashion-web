@@ -1,236 +1,177 @@
 from django.shortcuts import render
 from django.http import JsonResponse
+from django.contrib.auth.decorators import login_required
+from django.views.decorators.http import require_http_methods
+from django.views.decorators.csrf import csrf_exempt
 import json
-from datetime import datetime
-from orders.models import Order, OrderItem
-from products.models import Product
+from .models import Order
 
+# --- 1. RENDER HTML (Giao diện) ---
+@login_required
+def order_history_view(request):
+    return render(request, 'order_history.html')
 
+@login_required
+def order_detail_view(request, order_id):
+    if not Order.objects.filter(id=order_id, user=request.user).exists():
+        return render(request, '404.html') 
+    return render(request, 'order_detail.html', {'order_id': order_id})
+
+# --- 2. API DỮ LIỆU (JSON) ---
+
+@login_required
 def list_user_orders(request):
-    """List all orders for current user."""
-    # For unauthenticated users, we'll use session
-    orders = Order.objects.all().order_by('-created_at')
+    """API lấy danh sách đơn hàng của user"""
+    orders = Order.objects.filter(user=request.user).order_by('-created_at')
     
     data = []
     for order in orders:
-        items = []
-        for item in order.items.all():
-            items.append({
-                'product_id': item.product_id,
-                'product_title': item.product_title,
-                'product_price': item.product_price,
-                'quantity': item.quantity,
-                'item_total': item.product_price * item.quantity
-            })
-        
         data.append({
             'id': order.id,
             'status': order.status,
-            'total_price': order.total_price,
-            'items': items,
-            'shipping_address': order.shipping_address,
-            'created_at': order.created_at.isoformat()
+            'status_display': order.get_status_display(), 
+            'total_money': order.total_money,
+            'item_count': order.items.count(),
+            'created_at': order.created_at.strftime("%d/%m/%Y %H:%M"),
         })
     
-    return JsonResponse({
-        'status': 'success',
-        'data': data,
-        'count': len(data)
-    })
+    return JsonResponse({'status': 'success', 'data': data})
 
-
+@login_required
 def get_order_detail(request, order_id):
-    """Get details of a specific order."""
+    """API lấy chi tiết 1 đơn hàng"""
     try:
-        order = Order.objects.get(id=order_id)
+        order = Order.objects.get(id=order_id, user=request.user)
     except Order.DoesNotExist:
-        return JsonResponse({
-            'status': 'error',
-            'message': 'Order not found'
-        }, status=404)
+        return JsonResponse({'status': 'error', 'message': 'Không tìm thấy đơn hàng'}, status=404)
     
     items = []
     for item in order.items.all():
         items.append({
-            'product_id': item.product_id,
             'product_title': item.product_title,
-            'product_price': item.product_price,
+            'price': item.price,
             'quantity': item.quantity,
-            'item_total': item.product_price * item.quantity
+            'total': item.price * item.quantity,
+            'image': item.product.image.url if item.product.image else ''
         })
-    
+        
     return JsonResponse({
         'status': 'success',
         'data': {
             'id': order.id,
             'status': order.status,
-            'total_price': order.total_price,
-            'items': items,
-            'shipping_address': order.shipping_address,
-            'created_at': order.created_at.isoformat()
+            'status_display': order.get_status_display(),
+            'created_at': order.created_at.strftime("%H:%M %d/%m/%Y"),
+            'fullname': order.fullname,
+            'phone': order.phone,
+            'address': order.address,
+            'payment_method': order.payment_method,
+            'total_money': order.total_money,
+            'items': items
         }
     })
 
 
-def create_order_from_cart(request):
-    """Create order from cart."""
-    if request.method != 'POST':
-        return JsonResponse({
-            'status': 'error',
-            'message': 'POST method required'
-        }, status=405)
-    
-    try:
-        data = json.loads(request.body)
-        
-        # Get cart from session
-        cart = request.session.get('cart', {})
-        if not cart:
-            return JsonResponse({
-                'status': 'error',
-                'message': 'Cart is empty'
-            }, status=400)
-        
-        # Build order items
-        order_items_data = []
-        total_price = 0
-        
-        for product_id_str, qty in cart.items():
-            product_id = int(product_id_str)
-            try:
-                product = Product.objects.get(id=product_id)
-                item_total = product.price * qty
-                order_items_data.append({
-                    'product': product,
-                    'qty': qty,
-                    'price': product.price,
-                    'title': product.title
-                })
-                total_price += item_total
-            except Product.DoesNotExist:
-                continue
-        
-        if not order_items_data:
-            return JsonResponse({
-                'status': 'error',
-                'message': 'No valid products in cart'
-            }, status=400)
-        
-        # Create order
-        order = Order.objects.create(
-            status='pending',
-            total_price=total_price,
-            shipping_address=data.get('shipping_address', '')
-        )
-        
-        # Create order items
-        for item_data in order_items_data:
-            OrderItem.objects.create(
-                order=order,
-                product_id=item_data['product'].id,
-                product_title=item_data['title'],
-                product_price=item_data['price'],
-                quantity=item_data['qty']
-            )
-        
-        # Clear cart
-        request.session['cart'] = {}
-        request.session.modified = True
-        
-        return JsonResponse({
-            'status': 'success',
-            'message': 'Order created successfully',
-            'data': {
-                'id': order.id,
-                'status': order.status,
-                'total_price': order.total_price,
-                'created_at': order.created_at.isoformat()
-            }
-        })
-    
-    except (json.JSONDecodeError, ValueError, KeyError) as e:
-        return JsonResponse({
-            'status': 'error',
-            'message': f'Invalid request: {str(e)}'
-        }, status=400)
-
-
-def update_order_status(request, order_id):
-    """Update order status."""
-    if request.method != 'POST':
-        return JsonResponse({
-            'status': 'error',
-            'message': 'POST method required'
-        }, status=405)
-    
-    try:
-        order = Order.objects.get(id=order_id)
-    except Order.DoesNotExist:
-        return JsonResponse({
-            'status': 'error',
-            'message': 'Order not found'
-        }, status=404)
-    
-    try:
-        data = json.loads(request.body)
-        new_status = data.get('status')
-        
-        valid_statuses = [choice[0] for choice in Order.ORDER_STATUS_CHOICES]
-        if new_status not in valid_statuses:
-            return JsonResponse({
-                'status': 'error',
-                'message': f'Invalid status. Valid: {valid_statuses}'
-            }, status=400)
-        
-        order.status = new_status
-        order.save()
-        
-        return JsonResponse({
-            'status': 'success',
-            'message': f'Order status updated to {new_status}',
-            'data': {
-                'id': order.id,
-                'status': order.status
-            }
-        })
-    
-    except (json.JSONDecodeError, ValueError, KeyError) as e:
-        return JsonResponse({
-            'status': 'error',
-            'message': f'Invalid request: {str(e)}'
-        }, status=400)
-
-
+@csrf_exempt
+@login_required
+@require_http_methods(["POST"])
 def cancel_order(request, order_id):
-    """Cancel an order."""
-    if request.method != 'POST':
-        return JsonResponse({
-            'status': 'error',
-            'message': 'POST method required'
-        }, status=405)
-    
+    """API Hủy đơn hàng"""
     try:
-        order = Order.objects.get(id=order_id)
+        order = Order.objects.get(id=order_id, user=request.user)
     except Order.DoesNotExist:
-        return JsonResponse({
-            'status': 'error',
-            'message': 'Order not found'
-        }, status=404)
-    
-    if order.status in ['shipped', 'delivered', 'cancelled']:
-        return JsonResponse({
-            'status': 'error',
-            'message': f'Cannot cancel order with status: {order.status}'
-        }, status=400)
-    
+        return JsonResponse({'status': 'error', 'message': 'Không tìm thấy đơn hàng'}, status=404)
+        
+    if order.status != 'pending':
+        return JsonResponse({'status': 'error', 'message': 'Đơn hàng đã được xử lý, không thể hủy!'}, status=400)
+        
     order.status = 'cancelled'
     order.save()
-    
-    return JsonResponse({
-        'status': 'success',
-        'message': 'Order cancelled',
-        'data': {
-            'id': order.id,
-            'status': order.status
-        }
-    })
+    return JsonResponse({'status': 'success', 'message': 'Đã hủy đơn hàng thành công'})
+
+
+
+
+# views.py
+import json
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from django.contrib.auth.decorators import login_required
+from .models import Order, OrderItem
+from products.models import Product 
+from cart.models import Cart
+
+@csrf_exempt
+@login_required
+def create_order(request):
+    if request.method != 'POST':
+        return JsonResponse({'status': 'error', 'message': 'Yêu cầu không hợp lệ'}, status=405)
+
+    try:
+        data = json.loads(request.body)
+        selected_ids = data.get('items', [])
+        
+        if not selected_ids:
+            return JsonResponse({'status': 'error', 'message': 'Không có sản phẩm nào để đặt'}, status=400)
+        cart = Cart.objects.get(user=request.user)
+        items_to_buy = cart.items.filter(product_id__in=selected_ids)
+        
+        if not items_to_buy.exists():
+            return JsonResponse({'status': 'error', 'message': 'Sản phẩm chọn mua không còn trong giỏ hàng'}, status=400)
+
+        # 3. Tính toán lại tổng tiền (Backend tự tính để bảo mật, không tin client)
+        total_money = 0
+        order_items_buffer = []
+
+        for item in items_to_buy:
+            # Lấy thông tin mới nhất từ bảng Product (giá có thể đã đổi)
+            try:
+                product = Product.objects.get(id=item.product_id)
+                current_price = product.price
+                item_total = current_price * item.quantity
+                total_money += item_total
+                
+                # Lưu tạm vào buffer để tí nữa tạo OrderItem
+                order_items_buffer.append({
+                    'product_id': product.id,
+                    'title': product.title,
+                    'price': current_price,
+                    'qty': item.quantity
+                })
+            except Product.DoesNotExist:
+                continue # Bỏ qua nếu sản phẩm gốc đã bị xóa
+
+        # 4. Tạo Đơn hàng (Order)
+        order = Order.objects.create(
+            user=request.user,
+            fullname=data.get('fullname'),
+            phone=data.get('phone'),
+            email=data.get('email'),
+            shipping_address=data.get('address'), 
+            payment_method=data.get('payment_method'),
+            total_price=total_money,
+            status='delivered'
+        )
+
+        # 5. Tạo các chi tiết đơn hàng (OrderItem)
+        for buffer in order_items_buffer:
+            OrderItem.objects.create(
+                order=order,
+                product_id=buffer['product_id'],
+                product_title=buffer['title'],
+                product_price=buffer['price'],
+                quantity=buffer['qty']
+            )
+
+
+        items_to_buy.delete() 
+
+        return JsonResponse({
+            'status': 'success', 
+            'message': 'Đặt hàng thành công',
+            'order_id': order.id
+        })
+
+    except Exception as e:
+        print(f"Error creating order: {e}")
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)

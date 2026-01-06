@@ -1,74 +1,361 @@
 {% load static %}
 <!doctype html>
 <html lang="vi">
+
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Lịch sử đơn hàng — Fashion Mock</title>
+  <title>Lịch sử đơn hàng</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .star-rating {
+      cursor: pointer;
+      transition: color 0.2s;
+    }
+
+    .star-rating.active {
+      color: #FBBF24;
+    }
+  </style>
 </head>
-<body class="bg-gray-50 text-gray-800">
-  <header class="bg-white shadow">
+
+<body class="bg-gray-100 text-gray-800">
+
+  <header class="bg-white shadow sticky top-0 z-10">
     <div class="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
-      <a href="{% url 'shop-index' %}" class="text-2xl font-bold">Fashion Mock</a>
+      <a href="/" class="text-2xl font-bold text-red-600">Fashion Shop</a>
       <nav class="space-x-4">
-        <a href="{% url 'shop-products' %}" class="text-sm text-gray-600">Danh sách</a>
-        <a href="{% url 'shop-cart' %}" class="text-sm text-gray-600">Giỏ hàng</a>
+        <a href="#" class="text-sm text-gray-600 hover:text-red-600">Đơn mua</a>
+        <a href="#" class="text-sm text-gray-600 hover:text-red-600">Tài khoản</a>
       </nav>
     </div>
   </header>
-  <main class="max-w-6xl mx-auto px-4 py-8">
-    <h1 class="text-3xl font-bold mb-6">Lịch sử đơn hàng</h1>
-    <div id="orders" class="space-y-4"></div>
+
+  <main class="max-w-5xl mx-auto px-4 py-8">
+    <h1 class="text-2xl font-bold mb-6 text-gray-800">Lịch sử đơn hàng</h1>
+
+    <div id="orders-container" class="space-y-6">
+    </div>
   </main>
-  <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      const lastOrder = JSON.parse(localStorage.getItem('lastOrder') || 'null');
-      const container = document.getElementById('orders');
-      
-      if (!lastOrder) {
-        container.innerHTML = '<div class="bg-white p-6 rounded shadow text-center text-gray-500"><p>Chưa có đơn hàng nào</p></div>';
-        return;
-      }
-      
-      container.innerHTML = `
-        <div class="bg-white p-6 rounded shadow">
-          <div class="grid grid-cols-2 gap-4 mb-4 pb-4 border-b">
-            <div>
-              <p class="text-sm text-gray-600">Mã đơn</p>
-              <p class="font-bold">${lastOrder.id}</p>
-            </div>
-            <div>
-              <p class="text-sm text-gray-600">Ngày đặt</p>
-              <p class="font-bold">${new Date(lastOrder.createdAt).toLocaleString('vi-VN')}</p>
-            </div>
-            <div>
-              <p class="text-sm text-gray-600">Người nhận</p>
-              <p class="font-bold">${lastOrder.fullname}</p>
-            </div>
-            <div>
-              <p class="text-sm text-gray-600">Phương thức thanh toán</p>
-              <p class="font-bold uppercase">${lastOrder.payment_method === 'cod' ? 'COD' : lastOrder.payment_method}</p>
-            </div>
-          </div>
-          
-          <div class="mb-4 pb-4 border-b">
-            <p class="text-sm text-gray-600 mb-2">Địa chỉ giao hàng</p>
-            <p>${lastOrder.address}</p>
-          </div>
-          
-          <div class="flex justify-between items-center">
-            <div>
-              <p class="text-sm text-gray-600">Tổng cộng</p>
-              <p class="text-2xl font-bold text-indigo-600">₫${(lastOrder.total || 0).toLocaleString('vi-VN')}</p>
-            </div>
-            <div>
-              <span class="px-4 py-2 bg-yellow-100 text-yellow-800 rounded font-semibold text-sm">Đang xử lý</span>
-            </div>
-          </div>
+
+  <div id="reviewModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+    <div class="bg-white rounded-lg shadow-xl w-full max-w-md p-6 animate-fade-in-down">
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="text-lg font-bold text-gray-800">Đánh giá sản phẩm</h3>
+        <button onclick="closeReviewModal()" class="text-gray-400 hover:text-gray-600 text-xl">&times;</button>
+      </div>
+
+      <div class="flex items-center gap-3 mb-6 bg-gray-50 p-3 rounded border">
+        <img id="modal-img" src="" alt="" class="w-12 h-12 object-cover rounded">
+        <div>
+          <p id="modal-title" class="font-semibold text-sm text-gray-800"></p>
+          <p class="text-xs text-gray-500">Phân loại: Mặc định</p>
         </div>
-      `;
-    });
+      </div>
+
+      <form onsubmit="submitReview(event)">
+        <input type="hidden" id="modal-product-id">
+        <input type="hidden" id="modal-order-id">
+
+        <div class="mb-5 text-center">
+          <p class="text-sm text-gray-600 mb-2">Vui lòng đánh giá chất lượng</p>
+          <div class="flex justify-center gap-3 text-3xl text-gray-300">
+            <span class="star-rating" onclick="setRating(1)">★</span>
+            <span class="star-rating" onclick="setRating(2)">★</span>
+            <span class="star-rating" onclick="setRating(3)">★</span>
+            <span class="star-rating" onclick="setRating(4)">★</span>
+            <span class="star-rating" onclick="setRating(5)">★</span>
+          </div>
+          <input type="hidden" id="ratingValue" required>
+        </div>
+
+        <div class="mb-6">
+          <textarea id="reviewComment" rows="3"
+            class="w-full p-3 border border-gray-300 rounded focus:ring-1 focus:ring-red-500 focus:outline-none text-sm"
+            placeholder="Chia sẻ cảm nhận của bạn về sản phẩm..."></textarea>
+        </div>
+
+        <div class="flex gap-3">
+          <button type="button" onclick="closeReviewModal()"
+            class="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded hover:bg-gray-50 text-sm font-medium">Trở
+            lại</button>
+          <button type="submit"
+            class="flex-1 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 text-sm font-medium">Hoàn
+            thành</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    // 1. CẤU HÌNH URL API (Dựa trên cấu trúc history/urls.py bạn đã tạo)
+    const API_LIST = '/api/history/list/';
+    const API_DETAIL = '/api/history/detail/';
+    const API_SUBMIT_REVIEW = '/api/reviews/submit/';
+
+    // 2. HÀM TẢI VÀ RENDER DỮ LIỆU TỪ SERVER
+    async function loadOrders() {
+      const container = document.getElementById('orders-container');
+
+      // Hiển thị loading trong lúc đợi
+      container.innerHTML = `
+            <div class="text-center py-10">
+                <p class="text-gray-500">Đang tải dữ liệu...</p>
+            </div>`;
+
+      try {
+        // Bước A: Lấy danh sách đơn hàng (ID, Status, Total)
+        const resList = await fetch(API_LIST);
+        const dataList = await resList.json();
+
+        if (dataList.status !== 'success') {
+          container.innerHTML = `<p class="text-center text-red-500">Lỗi tải dữ liệu.</p>`;
+          return;
+        }
+
+        const orders = dataList.data;
+
+        if (orders.length === 0) {
+          container.innerHTML = `
+                    <div class="text-center py-10 bg-white rounded border">
+                        <p class="text-gray-500">Bạn chưa có đơn hàng nào.</p>
+                        <a href="/" class="text-red-600 font-bold hover:underline mt-2 inline-block">Mua sắm ngay</a>
+                    </div>`;
+          return;
+        }
+
+        let html = '';
+
+        // Bước B: Duyệt từng đơn để lấy chi tiết sản phẩm
+        // (Lưu ý: Dùng for...of để dùng được await bên trong)
+        for (const basicOrder of orders) {
+
+          // Gọi API Detail để lấy items
+          const resDetail = await fetch(`${API_DETAIL}${basicOrder.id}/`);
+          const dataDetail = await resDetail.json();
+
+          // Nếu lỗi thì dùng tạm data cơ bản, nếu ok thì dùng data chi tiết
+          const order = (dataDetail.status === 'success') ? dataDetail.data : basicOrder;
+          const items = order.items || []; // Đảm bảo items luôn là mảng
+
+          // --- LOGIC GIAO DIỆN (Giữ nguyên style của bạn) ---
+
+          // 1. Xử lý Badge Trạng thái
+          let statusBadge = '';
+          // Mapping trạng thái từ Backend sang tiếng Việt & Màu sắc
+          switch (order.status) {
+            case 'delivered': // Đã giao
+              statusBadge = '<span class="text-green-600 font-medium flex items-center gap-1">✔ Hoàn thành</span>';
+              break;
+            case 'cancelled': // Đã hủy
+              statusBadge = '<span class="text-red-500 font-medium flex items-center gap-1">✖ Đã hủy</span>';
+              break;
+            case 'shipped': // Đang giao
+              statusBadge = '<span class="text-orange-500 font-medium flex items-center gap-1">🚚 Đang vận chuyển</span>';
+              break;
+            default: // Pending, Processing
+              statusBadge = '<span class="text-blue-500 font-medium flex items-center gap-1">⏳ Đang xử lý</span>';
+          }
+
+          // 2. Render danh sách sản phẩm (Items)
+          let itemsHtml = items.map(item => {
+            // Logic nút đánh giá: Chỉ hiện khi 'delivered'
+            let actionBtn = '';
+
+            if (order.status === 'delivered') {
+              if (item.is_reviewed) {
+                // Đã đánh giá -> Hiện nút xám
+                actionBtn = `<button disabled class="px-4 py-2 border border-gray-200 bg-gray-50 text-gray-400 rounded text-sm cursor-not-allowed">Đã đánh giá</button>`;
+              } else {
+                // Chưa đánh giá -> Hiện nút đỏ, truyền thêm product_id
+                actionBtn = `<button onclick="openReviewModal('${order.id}', '${item.product_id}', '${item.product_title}', '${item.image}')" class="px-6 py-2 border border-red-500 text-red-500 rounded text-sm hover:bg-red-50 transition">Đánh giá</button>`;
+              }
+            }
+
+            // Map field từ API vào HTML (chú ý tên biến item.product_title, item.price...)
+            return `
+                    <div class="flex flex-col md:flex-row items-start md:items-center gap-4 py-4 border-b border-gray-100 last:border-0">
+                        <div class="flex items-start gap-3 flex-1">
+                            <img src="${item.image || 'https://via.placeholder.com/150'}" class="w-20 h-20 object-cover rounded border bg-gray-50">
+                            <div>
+                                <h4 class="font-medium text-gray-800 line-clamp-2">${item.product_title}</h4>
+                                <p class="text-gray-500 text-sm mt-1">Số lượng: ${item.quantity}</p>
+                            </div>
+                        </div>
+                        
+                        <div class="flex flex-row md:flex-col items-center md:items-end gap-4 w-full md:w-auto justify-between md:justify-end mt-2 md:mt-0">
+                            <span class="text-red-600 font-medium">₫${(item.price * item.quantity).toLocaleString('vi-VN')}</span>
+                            ${actionBtn}
+                        </div>
+                    </div>
+                    `;
+          }).join('');
+
+          // 3. Nút hủy đơn (Chỉ hiện khi pending)
+          let cancelBtnHtml = '';
+          if (order.status === 'pending') {
+            cancelBtnHtml = `
+                        <button onclick="cancelOrder(${order.id})" class="text-xs text-red-500 hover:underline mr-4 border border-red-200 px-2 py-1 rounded">
+                            Hủy đơn hàng
+                        </button>
+                    `;
+          }
+
+          // 4. Cộng dồn HTML khung đơn hàng
+          html += `
+                <div class="bg-white rounded-md shadow-sm border border-gray-200 overflow-hidden">
+                    <div class="flex justify-between items-center bg-gray-50 px-4 py-3 border-b border-gray-200">
+                        <div class="flex items-center gap-2">
+                            <span class="font-bold text-gray-800 text-sm">#${order.id}</span>
+                            <span class="text-gray-400 text-xs">|</span>
+                            <span class="text-gray-500 text-xs">${order.created_at}</span>
+                        </div>
+                        <div class="flex items-center">
+                            ${cancelBtnHtml}
+                            <div class="text-sm uppercase font-bold tracking-wide">
+                                ${statusBadge}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="px-4">
+                        ${itemsHtml}
+                    </div>
+
+                    <div class="px-4 py-4 bg-red-50/10 border-t border-gray-100 text-right">
+                        <span class="text-gray-600 text-sm mr-2">Tổng số tiền:</span>
+                        <span class="text-xl font-bold text-red-600">₫${order.total_money.toLocaleString('vi-VN')}</span>
+                    </div>
+                </div>
+                `;
+        }
+
+        container.innerHTML = html;
+
+      } catch (err) {
+        console.error(err);
+        container.innerHTML = `<p class="text-center text-red-500">Lỗi kết nối Server. Vui lòng thử lại sau.</p>`;
+      }
+    }
+
+    // 3. HÀM HỦY ĐƠN HÀNG (Gọi API)
+    async function cancelOrder(orderId) {
+      if (!confirm("Bạn có chắc chắn muốn hủy đơn này không?")) return;
+
+      try {
+        const response = await fetch(`/history/api/cancel/${orderId}/`, {
+          method: 'POST',
+          headers: {
+            'X-CSRFToken': '{{ csrf_token }}' // Cần token để Django chấp nhận POST
+          }
+        });
+        const data = await response.json();
+
+        if (data.status === 'success') {
+          alert("Đã hủy đơn hàng!");
+          loadOrders(); // Tải lại danh sách
+        } else {
+          alert("Lỗi: " + data.message);
+        }
+      } catch (err) {
+        alert("Lỗi kết nối!");
+      }
+    }
+
+    // 4. LOGIC MODAL & REVIEW (Giữ nguyên như cũ)
+function openReviewModal(orderId, prodId, title, image) { // Thêm tham số prodId
+    document.getElementById('modal-order-id').value = orderId;
+    
+    // Tạo hoặc cập nhật input hidden cho product_id
+    let prodInput = document.getElementById('modal-product-id');
+    if(!prodInput) {
+        prodInput = document.createElement('input');
+        prodInput.type = 'hidden';
+        prodInput.id = 'modal-product-id';
+        document.querySelector('form').appendChild(prodInput);
+    }
+    prodInput.value = prodId; // Lưu ID sản phẩm
+
+    document.getElementById('modal-title').innerText = title;
+    document.getElementById('modal-img').src = image;
+    
+    document.getElementById('reviewComment').value = '';
+    setRating(0);
+    
+    document.getElementById('reviewModal').classList.remove('hidden');
+    document.getElementById('reviewModal').classList.add('flex');
+}
+
+    function closeReviewModal() {
+      document.getElementById('reviewModal').classList.add('hidden');
+      document.getElementById('reviewModal').classList.remove('flex');
+    }
+
+    function setRating(val) {
+      document.getElementById('ratingValue').value = val;
+      const stars = document.querySelectorAll('.star-rating');
+      stars.forEach((star, index) => {
+        if (index < val) {
+          star.classList.add('active');
+          star.classList.remove('text-gray-300');
+        } else {
+          star.classList.remove('active');
+          star.classList.add('text-gray-300');
+        }
+      });
+    }
+
+
+async function submitReview(e) {
+    e.preventDefault();
+    const orderId = document.getElementById('modal-order-id').value;
+    const productId = document.getElementById('modal-product-id').value;
+    const rating = document.getElementById('ratingValue').value;
+    const comment = document.getElementById('reviewComment').value;
+    
+    if(!rating || rating == '0') {
+        alert("Vui lòng chọn số sao!");
+        return;
+    }
+
+    try {
+        const response = await fetch(API_SUBMIT_REVIEW, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}' // Django CSRF Token
+            },
+            body: JSON.stringify({
+                order_id: orderId,
+                product_id: productId,
+                rating: rating,
+                comment: comment
+            })
+        });
+
+        const data = await response.json();
+
+        if (data.status === 'success') {
+            alert("Đánh giá thành công! Cảm ơn bạn.");
+            closeReviewModal();
+            loadOrders(); // Tải lại danh sách đơn hàng để cập nhật trạng thái nút
+        } else {
+            alert("Lỗi: " + data.message);
+        }
+    } catch (err) {
+        console.error(err);
+        alert("Lỗi kết nối Server");
+    }
+}
+
+
+    
+    // KHỞI CHẠY
+    document.addEventListener('DOMContentLoaded', loadOrders);
   </script>
+
+
+
 </body>
+
 </html>
