@@ -125,3 +125,8 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATICFILES_DIRS = [ BASE_DIR / 'static' ]
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+MOMO_API_URL = "https://test-payment.momo.vn/v2/gateway/api/create"
+MOMO_PARTNER_CODE = "MOMO"
+MOMO_ACCESS_KEY = "F8BBA842ECF85"
+MOMO_SECRET_KEY = "K951B6PE1waDMi640xX08PD3vg6EkVlz"

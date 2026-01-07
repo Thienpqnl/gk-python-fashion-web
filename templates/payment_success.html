@@ -1,0 +1,74 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thanh toán thành công</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen py-10">
+
+    <div class="max-w-2xl mx-auto bg-white p-8 rounded-lg shadow-md">
+        <div class="text-center border-b pb-6 mb-6">
+            <div class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-green-100 mb-4">
+                <svg class="h-8 w-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+            </div>
+            <h1 class="text-2xl font-bold text-gray-800">Thanh toán thành công!</h1>
+            <p class="text-gray-500 mt-1">Mã giao dịch MoMo: <span class="font-mono">{{ momo_trans_id }}</span></p>
+        </div>
+
+        <div class="mb-8">
+            <h3 class="text-lg font-semibold text-gray-800 mb-3 border-l-4 border-indigo-500 pl-3">Thông tin nhận hàng</h3>
+            <div class="grid grid-cols-2 gap-4 text-sm">
+                <div>
+                    <p class="text-gray-500">Người nhận:</p>
+                    <p class="font-medium">{{ order.fullname }}</p>
+                </div>
+                <div>
+                    <p class="text-gray-500">Số điện thoại:</p>
+                    <p class="font-medium">{{ order.phone }}</p>
+                </div>
+                <div class="col-span-2">
+                    <p class="text-gray-500">Địa chỉ:</p>
+                    <p class="font-medium">{{ order.shipping_address }}</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="mb-8">
+            <h3 class="text-lg font-semibold text-gray-800 mb-3 border-l-4 border-indigo-500 pl-3">Chi tiết đơn hàng #{{ order.id }}</h3>
+            <div class="bg-gray-50 rounded-lg p-4">
+                {% for item in items %}
+                <div class="flex justify-between items-center py-2 border-b border-gray-200 last:border-0">
+                    <div>
+                        <p class="font-medium text-gray-800">{{ item.product_title }}</p>
+                        <p class="text-xs text-gray-500">SL: {{ item.quantity }}</p>
+                    </div>
+                    <p class="font-medium text-gray-700">
+                        ₫{{ item.product_price }} 
+                    </p>
+                </div>
+                {% endfor %}
+                
+                <div class="flex justify-between items-center pt-4 mt-2 border-t border-gray-300">
+                    <span class="font-bold text-lg text-gray-800">Tổng thanh toán:</span>
+                    <span class="font-bold text-xl text-indigo-600">₫{{ order.total_price }}</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex gap-4">
+            <a href="{% url 'shop-index' %}" class="flex-1 block text-center bg-gray-200 text-gray-800 font-semibold py-3 px-4 rounded hover:bg-gray-300">
+                Về trang chủ
+            </a>
+            <a href="{% url 'shop-order-history' %}" class="flex-1 block text-center bg-indigo-600 text-white font-semibold py-3 px-4 rounded hover:bg-indigo-700">
+                Xem lịch sử đơn
+            </a>
+        </div>
+    </div>
+
+</body>
+</html>

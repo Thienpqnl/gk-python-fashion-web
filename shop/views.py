@@ -3,6 +3,7 @@ from django.http import HttpResponse
 from products.models import Product, Category
 from reviews.models import Review
 from django.db.models import Avg, Count,Q
+from orders.models import Order, OrderItem
 def index(request):
     """Render the home page with featured products."""
     featured_products = Product.objects.all()[:4]
@@ -109,3 +110,24 @@ def order_history_page(request):
         'categories': categories,
     }
     return render(request, 'order-history.html', context)
+
+
+
+def order_success(request, order_id):
+    try:
+        order = Order.objects.get(id=order_id, user=request.user)
+        if order.status == 'pending': 
+            order.status = 'delivered'
+            order.save()
+        items = OrderItem.objects.filter(order=order)
+        context = {
+            'result': 'success',
+            'order': order,
+            'items': items,
+            'message': 'Đặt hàng thành công!',
+            'momo_trans_id': 'Thanh toán khi nhận hàng (COD)'
+        }
+        return render(request, 'payment_success.html', context)
+
+    except Order.DoesNotExist:
+        return render(request, 'payment_failed.html', {'message': 'Không tìm thấy đơn hàng'})
