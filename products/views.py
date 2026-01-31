@@ -123,8 +123,6 @@ def filter_by_category(request, category_id):
 
 
 
-
-
 def product_detail_view(request, product_id):
     # 1. Lấy thông tin sản phẩm
     product = get_object_or_404(Product, id=product_id)
