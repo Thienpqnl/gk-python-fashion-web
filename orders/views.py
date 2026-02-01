@@ -6,7 +6,7 @@ from django.contrib.auth.decorators import login_required
 from .models import Order, OrderItem
 from products.models import Product 
 from cart.models import Cart
-from .momo_utils import create_momo_payment # Import hàm xử lý MoMo
+from .momo_utils import create_momo_payment
 from django.shortcuts import render
 
 @csrf_exempt
@@ -18,7 +18,7 @@ def create_order(request):
     try:
         data = json.loads(request.body)
         selected_ids = data.get('items', [])
-        payment_method = data.get('payment_method') # Lấy phương thức thanh toán (COD hoặc MOMO)
+        payment_method = data.get('payment_method')
 
         if not selected_ids:
             return JsonResponse({'status': 'error', 'message': 'Không có sản phẩm nào để đặt'}, status=400)
@@ -36,7 +36,6 @@ def create_order(request):
         for item in items_to_buy:
             try:
                 product = Product.objects.get(id=item.product_id)
-                # Áp dụng giá giảm theo mùa nếu có
                 applies_discount = getattr(product, 'is_on_seasonal_sale', False)
                 current_price = product.discounted_price if applies_discount else product.price
                 item_total = current_price * item.quantity
@@ -51,7 +50,7 @@ def create_order(request):
             except Product.DoesNotExist:
                 continue 
 
-        # 4. Tạo Đơn hàng (Order)
+        # 4. Tạo Đơn hàng 
         order = Order.objects.create(
             user=request.user,
             fullname=data.get('fullname'),
@@ -63,7 +62,7 @@ def create_order(request):
             status='pending' 
         )
 
-        # 5. Tạo các chi tiết đơn hàng (OrderItem)
+        # 5. Tạo các chi tiết đơn hàng
         for buffer in order_items_buffer:
             OrderItem.objects.create(
                 order=order,
@@ -73,7 +72,7 @@ def create_order(request):
                 quantity=buffer['qty']
             )
 
-        # ========================================================
+        # =========================
         if payment_method == 'MOMO':
             pay_url = create_momo_payment(order.id, total_money)           
             if pay_url:
@@ -89,7 +88,7 @@ def create_order(request):
         
     
             
-        # Nếu là COD (Thanh toán khi nhận hàng) 
+        # Nếu là COD 
         items_to_buy.delete() 
 
         return JsonResponse({
@@ -140,21 +139,3 @@ def payment_return(request):
     else:
         return render(request, 'payment_failed.html', {'message': message})
     
-
-
-
-# def order_success(request, order_id):
-#     try:
-#         order = Order.objects.get(id=order_id, user=request.user)
-#         items = OrderItem.objects.filter(order=order)
-#         context = {
-#             'result': 'success',
-#             'order': order,
-#             'items': items,
-#             'message': 'Đặt hàng thành công!',
-#             'momo_trans_id': 'Thanh toán khi nhận hàng (COD)'
-#         }
-#         return render(request, 'payment_success.html', context)
-
-#     except Order.DoesNotExist:
-#         return render(request, 'payment_failed.html', {'message': 'Không tìm thấy đơn hàng'})

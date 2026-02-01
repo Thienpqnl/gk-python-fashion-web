@@ -10,6 +10,7 @@ DEBUG = True
 ALLOWED_HOSTS = []
 
 INSTALLED_APPS = [
+    'jazzmin',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -23,7 +24,7 @@ INSTALLED_APPS = [
     'search',
     'reviews',
     'django.contrib.sites',
-    
+    'django.contrib.humanize',
         # django-allauth
     'allauth',
     'allauth.account',
@@ -98,6 +99,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'shop.context_processors.admin_statistics',
             ],
         },
     },
@@ -130,6 +132,32 @@ MOMO_API_URL = "https://test-payment.momo.vn/v2/gateway/api/create"
 MOMO_PARTNER_CODE = "MOMO"
 MOMO_ACCESS_KEY = "F8BBA842ECF85"
 MOMO_SECRET_KEY = "K951B6PE1waDMi640xX08PD3vg6EkVlz"
+CURRENT_SEASON = 'spring'
 
-# Current site season (used for seasonal discounts)
-CURRENT_SEASON = 'spring'  # spring, summer, autumn, winter, all
+
+JAZZMIN_SETTINGS = {
+    "site_title": "Fashion Admin",
+    "site_header": "Fashion Store",
+    "site_brand": "Quản lý Thời Trang",
+    "welcome_sign": "Hệ thống quản lý bán hàng",
+    "copyright": "Fashion Store Ltd",
+    "search_model": ["orders.Order", "products.Product"],
+    "topmenu_links": [
+        {"name": "Trang chủ",  "url": "admin:index"},
+        {"model": "orders.Order"},
+    ],
+    "show_sidebar": True,
+    "navigation_expanded": True,
+    "icons": {
+        "orders.Order": "fas fa-cart-arrow-down",
+        "products.Product": "fas fa-tshirt",
+        "reviews.Review": "fas fa-comments",
+    },
+}
+
+JAZZMIN_UI_TWEAKS = {
+    "theme": "flatly", # Bạn có thể thử 'lux', 'darkly', 'cosmo'
+    "navbar_small_text": False,
+    "footer_small_text": False,
+}
+

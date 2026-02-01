@@ -1,6 +1,9 @@
 from django.contrib import admin
 from .models import Order, OrderItem
-
+from django.db.models import Sum, Avg
+from django.db.models import Sum, Count
+from django.db.models.functions import TruncMonth, TruncWeek
+import json
 
 @admin.register(Order)
 class OrderAdmin(admin.ModelAdmin):
@@ -13,3 +16,5 @@ class OrderAdmin(admin.ModelAdmin):
 class OrderItemAdmin(admin.ModelAdmin):
     list_display = ('id', 'order', 'product_id', 'quantity', 'product_price')
     search_fields = ('order__id', 'product_id')
+
+

@@ -88,7 +88,7 @@
   </div>
 
   <script>
-    // 1. CẤU HÌNH URL API (Dựa trên cấu trúc history/urls.py bạn đã tạo)
+    
     const API_LIST = '/api/history/list/';
     const API_DETAIL = '/api/history/detail/';
     const API_SUBMIT_REVIEW = '/api/reviews/submit/';
@@ -266,7 +266,7 @@
 function openReviewModal(orderId, prodId, title, image) { // Thêm tham số prodId
     document.getElementById('modal-order-id').value = orderId;
     
-    // Tạo hoặc cập nhật input hidden cho product_id
+
     let prodInput = document.getElementById('modal-product-id');
     if(!prodInput) {
         prodInput = document.createElement('input');
@@ -274,7 +274,7 @@ function openReviewModal(orderId, prodId, title, image) { // Thêm tham số pro
         prodInput.id = 'modal-product-id';
         document.querySelector('form').appendChild(prodInput);
     }
-    prodInput.value = prodId; // Lưu ID sản phẩm
+    prodInput.value = prodId; 
 
     document.getElementById('modal-title').innerText = title;
     document.getElementById('modal-img').src = image;

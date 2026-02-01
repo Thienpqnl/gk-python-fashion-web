@@ -1,0 +1,135 @@
+{% extends "admin/index.html" %}
+{% block content %}
+{% load humanize %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+    .chart-container-pie { position: relative; margin: auto; height: 250px; width: 100%; }
+    .chart-container-bar { position: relative; height: 300px; width: 100%; }
+    .year-filter { margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }
+</style>
+
+<div class="container-fluid">
+            <div class="col-md-4">
+            <div class="small-box bg-info p-3 rounded shadow-sm text-white">
+                <div class="inner">
+                    <h3>{{ total_revenue|intcomma }} <sup style="font-size: 20px">VNĐ</sup></h3>
+                    <p>Tổng doanh thu năm</p>
+                </div>
+                <div class="icon"><i class="fas fa-money-bill-wave"></i></div>
+            </div>
+        </div>
+    <div class="year-filter">
+        <strong>Thống kê năm:</strong>
+        <div class="btn-group">
+            <a href="?year=2025" class="btn btn-sm {% if selected_year == 2025 %}btn-primary{% else %}btn-default{% endif %}">2025</a>
+            <a href="?year=2026" class="btn btn-sm {% if selected_year == 2026 %}btn-primary{% else %}btn-default{% endif %}">2026</a>
+        </div>
+    </div>
+
+    
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card card-primary card-outline">
+                <div class="card-header"><h3 class="card-title">Doanh thu năm {{ selected_year }} (VNĐ)</h3></div>
+                <div class="card-body">
+                    <div class="chart-container-bar"><canvas id="revChart"></canvas></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card card-success card-outline">
+                <div class="card-header"><h3 class="card-title">Số lượng đơn hàng năm {{ selected_year }}</h3></div>
+                <div class="card-body">
+                    <div class="chart-container-bar"><canvas id="orderChart"></canvas></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card card-warning card-outline">
+                <div class="card-header"><h3 class="card-title">Đánh giá sản phẩm {{ selected_year }}</h3></div>
+                <div class="card-body">
+                    <div class="chart-container-pie"><canvas id="ratingChart"></canvas></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card card-danger card-outline">
+                <div class="card-header"><h3 class="card-title">Phân tích bình luận {{ selected_year }}</h3></div>
+                <div class="card-body">
+                    <div class="chart-container-pie"><canvas id="sentimentChart"></canvas></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    
+</div>
+
+<script>
+    const barOptions = { 
+        responsive: true, 
+        maintainAspectRatio: false,
+        scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }
+    };
+
+    // 1. Doanh thu (Bar) - Hiển thị 12 tháng của năm đã chọn
+    new Chart(document.getElementById('revChart'), {
+        type: 'bar',
+        data: {
+            labels: {{ chart_labels|safe }},
+            datasets: [{ 
+                label: 'Doanh thu', 
+                data: {{ chart_rev_data|safe }}, 
+                backgroundColor: '#007bff',
+                borderRadius: 4
+            }]
+        },
+        options: {
+            ...barOptions,
+            scales: { y: { ticks: { callback: (v) => v.toLocaleString('vi-VN') + ' đ' } } }
+        }
+    });
+
+    // 2. Đơn hàng (Bar) - Hiển thị 12 tháng của năm đã chọn
+    new Chart(document.getElementById('orderChart'), {
+        type: 'bar',
+        data: {
+            labels: {{ chart_labels|safe }},
+            datasets: [{ 
+                label: 'Đơn hàng', 
+                data: {{ chart_order_data|safe }}, 
+                backgroundColor: '#28a745',
+                borderRadius: 4
+            }]
+        },
+        options: barOptions
+    });
+
+    // 3 & 4: Pie/Doughnut Chart (Tự động thu nhỏ theo class chart-container-pie)
+    const pieOptions = { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } };
+
+    new Chart(document.getElementById('ratingChart'), {
+        type: 'pie',
+        data: {
+            labels: ['1⭐', '2⭐', '3⭐', '4⭐', '5⭐'],
+            datasets: [{ data: {{ chart_rating_data|safe }}, backgroundColor: ['#dc3545', '#ffc107', '#fd7e14', '#20c997', '#28a745'] }]
+        },
+        options: pieOptions
+    });
+
+    new Chart(document.getElementById('sentimentChart'), {
+        type: 'doughnut',
+        data: {
+            labels: ['Tích cực', 'Tiêu cực'],
+            datasets: [{ data: {{ sentiment_data|safe }}, backgroundColor: ['#28a745', '#dc3545'] }]
+        },
+        options: pieOptions
+    });
+</script>
+{% endblock %}

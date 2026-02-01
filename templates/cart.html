@@ -1,3 +1,4 @@
+
 {% load static %}
 <!doctype html>
 <html lang="vi">
@@ -102,8 +103,8 @@
             <div class="flex-1">
               <h3 class="font-semibold text-gray-800">${item.product_title}</h3>
               ${ item.discount_percent && item.discount_percent > 0 && item.product_price < item.product_original_price ?
-                `<p class="text-sm text-gray-500">Đơn giá: <span class="text-sm text-gray-500 line-through">${item.product_original_price.toLocaleString('vi-VN')}₫</span> <span class="text-amber-600 font-bold">${item.product_price.toLocaleString('vi-VN')}₫</span></p>` :
-                `<p class="text-sm text-gray-500">Đơn giá: ${item.product_price.toLocaleString('vi-VN')}₫</p>`
+                `<p class="text-sm text-gray-500">Đơn giá: <span class="text-sm text-gray-500 line-through">${item.product_original_price.toLocaleString('en-US')} ₫</span> <span class="text-amber-600 font-bold">${item.product_price.toLocaleString('en-US')} ₫</span></p>` :
+                `<p class="text-sm text-gray-500">Đơn giá: ${item.product_price.toLocaleString('en-US')} ₫</p>`
               }
               
               <div class="flex items-center gap-2 mt-2">
@@ -112,7 +113,7 @@
             </div>
             
             <div class="text-right">
-              <p class="font-bold text-indigo-600">${item.item_total.toLocaleString('vi-VN')}₫</p>
+              <p class="font-bold text-indigo-600">${item.item_total.toLocaleString('en-US')} ₫</p>
               <button class="text-xs text-red-500 hover:underline mt-1" onclick="removeFromCart(${item.product_id})">Xóa</button>
             </div>
           </div>
@@ -139,8 +140,8 @@
         });
 
         // Cập nhật giao diện
-        document.getElementById('subtotal').textContent = total.toLocaleString('vi-VN') + 'đ';
-        document.getElementById('total').textContent =  total.toLocaleString('vi-VN') +'₫';
+        document.getElementById('subtotal').textContent = total.toLocaleString('en-US') + ' đ';
+        document.getElementById('total').textContent =  total.toLocaleString('en-US') +' ₫';
         
         // Disable nút Thanh toán nếu chưa chọn gì
         const btn = document.getElementById('checkoutBtn');
@@ -199,4 +200,5 @@ function goCheckout() {
 </script>
 
 </body>
+
 </html>

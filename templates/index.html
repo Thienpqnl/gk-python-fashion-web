@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% load static %}
-
+{% load humanize %}
 {% block title %}Fashion E‑com — Trang chủ{% endblock %}
 
 {% block content %}
@@ -49,12 +49,12 @@
           <h3 class="font-semibold text-gray-900 truncate">{{ product.title }}</h3>
           {% if product.is_on_seasonal_sale %}
             <div class="mt-2 flex items-baseline gap-3">
-              <span class="text-sm text-gray-500 line-through">{{ product.price|floatformat:0 }}đ</span>
-              <span class="text-amber-600 font-bold">{{ product.discounted_price|floatformat:0 }}đ</span>
+              <span class="text-sm text-gray-500 line-through">{{ product.price|intcomma }} đ</span>
+              <span class="text-amber-600 font-bold">{{ product.discounted_price|intcomma:0 }} đ</span>
             </div>
             <div class="mt-2 text-xs text-white bg-amber-600 inline-block px-2 py-1 rounded">-{{ product.seasonal_discount_percent }}% {{ product.season|title }}</div>
           {% else %}
-            <p class="text-amber-600 font-bold mt-2">{{ product.price|floatformat:0 }}đ</p>
+            <p class="text-amber-600 font-bold mt-2">{{ product.price|intcomma }} đ</p>
           {% endif %}
           <a href="{% url 'shop-product-detail' product.id %}" class="block mt-3 text-center py-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded hover:opacity-90 transition text-sm font-semibold">
             Chi tiết
@@ -118,4 +118,5 @@
     {% endif %}
   </section>
 </main>
+
 {% endblock %}

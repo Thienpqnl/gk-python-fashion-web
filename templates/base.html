@@ -45,12 +45,20 @@
 
 <!-- Header -->
 <header class="bg-white shadow-sm sticky top-0 z-50">
+  
   <div class="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
     <a href="{% url 'shop-index' %}" class="flex items-center space-x-2 hover:opacity-80 transition">
       <img src="{% static 'images/logo1.png' %}" class="h-10 w-10" alt="Logo"/>
       <span class="font-display text-xl font-semibold text-gray-900">Fashion</span>
     </a>
     <nav class="hidden md:flex items-center space-x-6">
+              {% if user.is_staff %}
+  <div class="">
+    <a href="{% url 'admin:index' %}" class="text-gray-400 hover:text-gray-600 text-sm flex items-center justify-center">
+      <i class="fas fa-user-shield mr-1"></i> Quản trị hệ thống
+    </a>
+  </div>
+{% endif %}
       <a href="{% url 'shop-products' %}" class="text-gray-600 hover:text-amber-600 transition font-medium">Sản phẩm</a>
       <a href="{% url 'shop-cart' %}" class="text-gray-600 hover:text-amber-600 transition font-medium flex items-center">
         <i class="fas fa-shopping-cart mr-2"></i>Giỏ hàng
@@ -72,6 +80,7 @@
             </a>
           </div>
         </div>
+
       {% else %}
         <a href="{% url 'account_login' %}" class="text-gray-600 hover:text-amber-600 transition font-medium">Đăng nhập</a>
         <a href="{% url 'account_signup' %}" class="btn-primary !px-4 !py-2 text-sm">Đăng ký</a>

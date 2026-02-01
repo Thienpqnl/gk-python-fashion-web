@@ -9,7 +9,7 @@ import json
 from orders.models import Order, OrderItem 
 
 # --- 1. RENDER HTML (Giao diện) ---
-@login_required(login_url='/accounts/login/') # Chuyển hướng nếu chưa đăng nhập
+@login_required(login_url='/accounts/login/')
 def order_history_view(request):
     return render(request, 'order-history.html')
 
@@ -26,7 +26,7 @@ def list_user_orders(request):
         data.append({
             'id': order.id,
             'status': order.status, 
-            'total_money': order.total_price, # Chú ý: trong Model bạn đặt là total_price hay total_money? Sửa cho khớp nhé.
+            'total_money': order.total_price,
             'created_at': order.created_at.strftime("%d/%m/%Y %H:%M"),
         })
     
@@ -46,11 +46,9 @@ def get_order_detail(request, order_id):
             'product_title': item.product_title,
             'price': item.product_price,
             'quantity': item.quantity,
-            # Nếu item.product là ForeignKey -> item.product.image.url
-            # Nếu bạn lưu cứng link ảnh trong OrderItem -> item.product_image
-            'image': '', # Tạm để trống hoặc xử lý tùy Model của bạn
-            'product_id': item.product_id, # ID sản phẩm thật
-            'is_reviewed': item.is_reviewed  # Trạng thái đã đánh giá chưa
+            'image': '',
+            'product_id': item.product_id,
+            'is_reviewed': item.is_reviewed  
         })
         
     return JsonResponse({
