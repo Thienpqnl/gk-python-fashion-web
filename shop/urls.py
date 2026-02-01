@@ -9,5 +9,6 @@ urlpatterns = [
     path('checkout/', views.checkout_page, name='shop-checkout'),
     path('ai-search/', views.ai_search_page, name='shop-ai-search'),
     path('order-history/', views.order_history_page, name='shop-order-history'),  
+    path('seasonal-sales/', views.seasonal_sales_page, name='shop-seasonal-sales'),
     path('order-success/<int:order_id>/', views.order_success, name='shop_order_success'),
 ]

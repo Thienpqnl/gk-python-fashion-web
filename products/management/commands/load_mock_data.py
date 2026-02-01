@@ -38,6 +38,8 @@ class Command(BaseCommand):
                     'description': product_data['description'],
                     'price': product_data['price'],
                     'image': product_data['image'],
+                    'season': product_data.get('season', Product.SEASON_ALL),
+                    'seasonal_discount_percent': product_data.get('seasonal_discount_percent', 0),
                     'category': category
                 }
             )

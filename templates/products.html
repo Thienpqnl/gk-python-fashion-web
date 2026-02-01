@@ -42,7 +42,7 @@
               <h3 class="font-semibold text-sm">{{ product.title }}</h3>
               <p class="text-xs text-gray-600 mt-1">{{ product.description|truncatewords:3 }}</p>
               <div class="mt-3 flex justify-between items-center">
-                <span class="font-bold text-lg">₫{{ product.price|floatformat:0 }}</span>
+                <span class="font-bold text-lg">{{ product.price|floatformat:0 }} ₫</span>
               </div>
               <a href="{% url 'shop-product-detail' product.id %}" class="block mt-3 text-center bg-indigo-600 text-white text-sm py-2 rounded hover:bg-indigo-700">Chi tiết</a>
             </div>

@@ -5,14 +5,41 @@ from reviews.models import Review
 from django.db.models import Avg, Count,Q
 from orders.models import Order, OrderItem
 def index(request):
-    """Render the home page with featured products."""
-    featured_products = Product.objects.all()[:4]
+    """Render the home page with seasonal discounted products (limit 4)."""
+    from django.conf import settings
+    current_season = getattr(settings, 'CURRENT_SEASON', Product.SEASON_ALL)
+
+    # Products explicitly for current season with a discount
+    seasonal_qs = Product.objects.filter(seasonal_discount_percent__gt=0, season=current_season).order_by('-seasonal_discount_percent')
+    seasonal_products = list(seasonal_qs[:4])
+
+    # Fill with all-season discounted products if less than 4
+    if len(seasonal_products) < 4:
+        needed = 4 - len(seasonal_products)
+        fallback = Product.objects.filter(seasonal_discount_percent__gt=0, season=Product.SEASON_ALL).exclude(id__in=[p.id for p in seasonal_products]).order_by('-seasonal_discount_percent')[:needed]
+        seasonal_products.extend(list(fallback))
+
     categories = Category.objects.all()
     context = {
-        'featured_products': featured_products,
+        'seasonal_products': seasonal_products,
         'categories': categories,
     }
     return render(request, 'index.html', context)
+
+
+def seasonal_sales_page(request):
+    """Page that lists all products on seasonal sale for the current season."""
+    from django.conf import settings
+    current_season = getattr(settings, 'CURRENT_SEASON', Product.SEASON_ALL)
+
+    products = Product.objects.filter(seasonal_discount_percent__gt=0).filter(Q(season=current_season) | Q(season=Product.SEASON_ALL)).order_by('-seasonal_discount_percent')
+    categories = Category.objects.all()
+    context = {
+        'products': products,
+        'categories': categories,
+        'sale_season': current_season,
+    }
+    return render(request, 'seasonal-sales.html', context)
 
 
 def products_page(request):

@@ -37,7 +37,7 @@
           <div id="summaryContent" class="space-y-3 text-sm">
             <div class="flex justify-between text-gray-600">
               <span>Tạm tính:</span>
-              <span id="subtotal">₫0</span>
+              <span id="subtotal">0₫</span>
             </div>
             <div class="flex justify-between text-gray-600">
               <span>Vận chuyển:</span>
@@ -45,7 +45,7 @@
             </div>
             <div class="border-t pt-3 flex justify-between font-semibold text-lg">
               <span>Tổng cộng:</span>
-              <span id="total" class="text-indigo-600">₫0</span>
+              <span id="total" class="text-indigo-600">0₫</span>
             </div>
           </div>
           <button id="checkoutBtn" onclick="goCheckout()" class="w-full mt-4 px-4 py-3 bg-indigo-600 text-white rounded font-semibold hover:bg-indigo-700 transition">Thanh toán</button>
@@ -101,7 +101,10 @@
             
             <div class="flex-1">
               <h3 class="font-semibold text-gray-800">${item.product_title}</h3>
-              <p class="text-sm text-gray-500">Đơn giá: ₫${item.product_price.toLocaleString('vi-VN')}</p>
+              ${ item.discount_percent && item.discount_percent > 0 && item.product_price < item.product_original_price ?
+                `<p class="text-sm text-gray-500">Đơn giá: <span class="text-sm text-gray-500 line-through">${item.product_original_price.toLocaleString('vi-VN')}₫</span> <span class="text-amber-600 font-bold">${item.product_price.toLocaleString('vi-VN')}₫</span></p>` :
+                `<p class="text-sm text-gray-500">Đơn giá: ${item.product_price.toLocaleString('vi-VN')}₫</p>`
+              }
               
               <div class="flex items-center gap-2 mt-2">
                  <span class="text-sm text-gray-600">Số lượng: ${item.quantity}</span>
@@ -109,7 +112,7 @@
             </div>
             
             <div class="text-right">
-              <p class="font-bold text-indigo-600">₫${item.item_total.toLocaleString('vi-VN')}</p>
+              <p class="font-bold text-indigo-600">${item.item_total.toLocaleString('vi-VN')}₫</p>
               <button class="text-xs text-red-500 hover:underline mt-1" onclick="removeFromCart(${item.product_id})">Xóa</button>
             </div>
           </div>
@@ -136,8 +139,8 @@
         });
 
         // Cập nhật giao diện
-        document.getElementById('subtotal').textContent = '₫' + total.toLocaleString('vi-VN');
-        document.getElementById('total').textContent = '₫' + total.toLocaleString('vi-VN');
+        document.getElementById('subtotal').textContent = total.toLocaleString('vi-VN') + 'đ';
+        document.getElementById('total').textContent =  total.toLocaleString('vi-VN') +'₫';
         
         // Disable nút Thanh toán nếu chưa chọn gì
         const btn = document.getElementById('checkoutBtn');

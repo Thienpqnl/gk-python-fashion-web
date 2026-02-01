@@ -239,7 +239,10 @@ def get_cart(request):
             item.delete()
             continue
             
-        item_total = product.price * item.quantity
+        # Giá áp dụng (tính giảm giá mùa nếu có)
+        applies_discount = getattr(product, 'is_on_seasonal_sale', False)
+        current_price = product.discounted_price if applies_discount else product.price
+        item_total = current_price * item.quantity
         
         # --- XỬ LÝ ẢNH AN TOÀN ---
         # Kiểm tra xem field image có thuộc tính .url không
@@ -253,10 +256,12 @@ def get_cart(request):
         items.append({
             'product_id': product.id,
             'product_title': product.title,
-            'product_price': product.price,
-            'product_image': image_val, 
+            'product_price': current_price,
+            'product_original_price': product.price,
+            'product_image': image_val,
             'quantity': item.quantity,
-            'item_total': item_total
+            'item_total': item_total,
+            'discount_percent': product.seasonal_discount_percent if applies_discount else 0,
         })
         
         total_price += item_total

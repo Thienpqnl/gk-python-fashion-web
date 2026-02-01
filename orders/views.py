@@ -36,7 +36,9 @@ def create_order(request):
         for item in items_to_buy:
             try:
                 product = Product.objects.get(id=item.product_id)
-                current_price = product.price
+                # Áp dụng giá giảm theo mùa nếu có
+                applies_discount = getattr(product, 'is_on_seasonal_sale', False)
+                current_price = product.discounted_price if applies_discount else product.price
                 item_total = current_price * item.quantity
                 total_money += item_total
                 
